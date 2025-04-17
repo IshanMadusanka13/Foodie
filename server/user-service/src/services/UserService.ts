@@ -6,4 +6,5 @@ export interface IUserService {
   getAllUsers(): Promise<IUser[]>;
   updateUser(userId: string, user: Partial<IUser>): Promise<IUser | null>;
   deleteUser(userId: string): Promise<boolean>;
+  generateUserId(): Promise<string>;
 }
