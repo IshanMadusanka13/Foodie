@@ -20,14 +20,39 @@ export class UserService implements IUserService {
     }
   }
 
+  async login(credentials: { email: string; password: string }): Promise<IUser | null> {
+    logger.info('Attempting user login');
+    try {
+      const user = await User.findOne({ email: credentials.email });
+      
+      if (!user) {
+        logger.warn('Login failed - user not found');
+        return null;
+      }
+      
+      const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+      
+      if (isPasswordValid) {
+        logger.info('Login successful');
+        return user;
+      } else {
+        logger.warn('Login failed - invalid password');
+        return null;
+      }
+    } catch (error) {
+      logger.error({ error, email: credentials.email }, 'Error during login');
+      throw error;
+    }
+}
+
   async getUserById(userId: string): Promise<IUser | null> {
     logger.info({ userId }, 'Fetching user by ID');
     try {
       const user = await User.findOne({ user_id: userId });
       if (user) {
-        logger.info({ userId }, 'User found');
+        logger.info('User found');
       } else {
-        logger.warn({ userId }, 'User not found');
+        logger.warn('User not found');
       }
       return user;
     } catch (error) {
@@ -40,7 +65,7 @@ export class UserService implements IUserService {
     logger.info('Fetching all users');
     try {
       const users = await User.find();
-      logger.info({ count: users.length }, 'Users retrieved successfully');
+      logger.info('Users retrieved successfully');
       return users;
     } catch (error) {
       logger.error({ error }, 'Failed to fetch all users');
@@ -53,13 +78,13 @@ export class UserService implements IUserService {
     try {
       if (user.password) {
         user.password = await bcrypt.hash(user.password, 10);
-        logger.debug({ userId }, 'Password hashed for update');
+        logger.debug('Password hashed for update');
       }
       const updatedUser = await User.findOneAndUpdate({ user_id: userId }, user, { new: true });
       if (updatedUser) {
-        logger.info({ userId }, 'User updated successfully');
+        logger.info('User updated successfully');
       } else {
-        logger.warn({ userId }, 'User not found for update');
+        logger.warn('User not found for update');
       }
       return updatedUser;
     } catch (error) {
@@ -74,9 +99,9 @@ export class UserService implements IUserService {
       const result = await User.deleteOne({ user_id: userId });
       const isDeleted = result.deletedCount > 0;
       if (isDeleted) {
-        logger.info({ userId }, 'User deleted successfully');
+        logger.info('User deleted successfully');
       } else {
-        logger.warn({ userId }, 'User not found for deletion');
+        logger.warn('User not found for deletion');
       }
       return isDeleted;
     } catch (error) {
@@ -93,7 +118,7 @@ export class UserService implements IUserService {
       const nextSequence = count + 1;
       const formattedSequence = nextSequence.toString().padStart(4, '0');
       const userId = `F${formattedSequence}`;
-      logger.debug({ userId, sequence: nextSequence }, 'User ID generated');
+      logger.debug('User ID generated');
       return userId;
 
     } catch (error) {

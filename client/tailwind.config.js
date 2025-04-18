@@ -12,30 +12,29 @@ export default {
         display: ['Poppins', 'ui-sans-serif', 'system-ui'],
       },
       colors: {
-        blue: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+        primary: {
+          50: '#f0fdf4',
+          100: '#e6f7ed',
+          200: '#d1fae5',
+          300: '#a7f3d0',
+          400: '#6ee7b7',
+          500: '#36BF3F',
+          600: '#208C27',
+          700: '#1a7321',
+          800: '#16601d',
+          900: '#14532d',
         },
-        indigo: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
+        secondary: {
+          500: '#f59e0b',
         },
+        danger: {
+          500: '#ef4444',
+        },
+        neutral: {
+          light: '#f8fafc',
+          DEFAULT: '#e2e8f0',
+          dark: '#64748b'
+        }
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

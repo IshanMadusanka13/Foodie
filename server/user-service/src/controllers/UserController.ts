@@ -13,6 +13,15 @@ export class UserController {
     }
   };
 
+  login = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = await userService.login(req.body);
+      res.status(201).json(user);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+
   getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const users = await userService.getAllUsers();

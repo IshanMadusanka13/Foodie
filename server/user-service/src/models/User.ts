@@ -11,7 +11,6 @@ export interface IUser {
   profile_image?: string;
 }
 
-
 const UserSchema: Schema = new Schema<IUser>({
   user_id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
