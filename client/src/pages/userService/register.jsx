@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../../utils/fetchapi';
+import { useAuth } from '../../hooks/useAuth';
 
 const Register = () => {
+    const { register } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
         username: '',
@@ -26,7 +28,7 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("lci")
+        setErrors({})
 
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
@@ -42,10 +44,10 @@ const Register = () => {
             phone_number: formData.phone_number,
             address: formData.address,
             profileImage: null,
-            role: 'USER'
+            role: 'CUSTOMER'
         };
 
-        const result = await api.register(userData);
+        const result = await register(userData);
 
         if (result.success) {
             navigate('/login');
@@ -235,6 +237,23 @@ const Register = () => {
                                 I accept the <a href="#" className="text-blue-600 hover:text-blue-500 dark:text-blue-400">Terms and Conditions</a>
                             </label>
                         </div>
+
+                        {/* Error messages section - add this before the submit button */}
+                        {(errors.general || Object.keys(errors).length > 0) && (
+                            <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800">
+                                {errors.general && (
+                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.general}</p>
+                                )}
+
+                                {Object.entries(errors).map(([field, message]) => (
+                                    field !== 'general' && message && (
+                                        <p key={field} className="text-sm text-red-600 dark:text-red-400">
+                                            {message}
+                                        </p>
+                                    )
+                                ))}
+                            </div>
+                        )}
 
                         <div className="pt-2">
                             <button

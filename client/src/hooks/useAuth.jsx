@@ -9,31 +9,77 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-
-    const token = localStorage.getItem('token');
-    const email = localStorage.getItem('userEmail');
-    if (token) {
-      api.getCurrentUser(email)
-        .then(user => {
-          setCurrentUser(user);
-
-        })
-        .catch(err => {
-          console.error('Failed to fetch user:', err);
-          localStorage.removeItem('token');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    const foodie_user = localStorage.getItem('foodie_user');
+    
+    if (foodie_user) {
+      try {
+        const parsedUser = JSON.parse(foodie_user); // ✅ Parse the stored JSON
+        api.getCurrentUser(parsedUser.user_id)
+          .then(user => {
+            setCurrentUser(user);
+          })
+          .catch(err => {
+            console.error('Failed to fetch user:', err);
+            localStorage.removeItem('foodie_user');
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      } catch (err) {
+        console.error('Failed to parse user data:', err);
+        localStorage.removeItem('foodie_user');
+        setLoading(false);
+      }
     } else {
       setLoading(false);
     }
   }, []);
 
+  const register = async (userData) => {
+    try {
+      setError(null);
+      const response = await api.register(userData);
+      return { success: true, data: response };
+    } catch (err) {
+      setError(err.message || 'Registration failed');
+      return { success: false, error: err.message };
+    }
+  };
+  
+  const login = async (credentials) => {
+    try {
+      setError(null);
+      const response = await api.login(credentials);
+  
+      localStorage.setItem('foodie_user', JSON.stringify({
+        token: response.token,
+        user_id: response.user_id,
+        role: response.role
+      }));
+  
+      const user = await api.getCurrentUser(response.user_id);
+      setCurrentUser(user);
+  
+      return { success: true };
+    } catch (err) {
+      setError(err.message || 'Login failed');
+      return { success: false, error: err.message };
+    }
+  };
+  
+  
+  const logout = () => {
+    localStorage.removeItem('foodie_user');
+    setCurrentUser(null);
+  };
+
   const value = {
     currentUser,
     loading,
     error,
+    register,
+    login,
+    logout
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
