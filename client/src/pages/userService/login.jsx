@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../../utils/fetchapi';
+import { useAuth } from '../../hooks/useAuth';
 
 const Login = () => {
+    const { login } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -22,7 +24,7 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            const { success, error } = await api.login({
+            const { success, error } = await login({
                 email: formData.email,
                 password: formData.password
             });

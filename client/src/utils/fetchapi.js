@@ -23,8 +23,8 @@ const fetchApi = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${endpoint}`, config);
-        // console.log('API Request:', { endpoint, options });
-        // console.log('API Response:', response);
+        console.log('API Request:', { endpoint, options });
+        console.log('API Response:', response);
 
         if (response.status === 401) {
             localStorage.removeItem('token');
@@ -70,6 +70,11 @@ export const api = {
         fetchApi(USER_SERVICE_API_URL + '/users', {
             method: 'POST',
             body: JSON.stringify(userData)
+        }),
+
+    getCurrentUser: (user_id) =>
+        fetchApi(USER_SERVICE_API_URL + '/users/' + user_id, {
+            method: 'GET'
         }),
 
 };
