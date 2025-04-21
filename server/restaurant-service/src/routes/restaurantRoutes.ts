@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import controller from '../controllers/restaurantController';
 import { authenticate, verifyRole } from '../middlewares/auth';  
+import upload from '../middlewares/upload';
 
 const router = express.Router();
 
@@ -34,5 +35,17 @@ router.delete(
     verifyRole(['restaurant_admin']),
     controller.deleteRestaurant
 );
+
+// router.post(
+//     '/',
+//     upload.single('image'),
+//     controller.createRestaurant
+// );
+
+// router.put(
+//     '/:id',
+//     upload.single('image'),
+//     controller.updateRestaurant
+// );
 
 export default router;

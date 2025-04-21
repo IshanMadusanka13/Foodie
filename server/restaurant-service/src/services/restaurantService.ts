@@ -19,17 +19,30 @@ const isCurrentlyOpen = (openTime: string, closeTime: string): boolean => {
         if (
             typeof openTime !== 'string' ||
             typeof closeTime !== 'string' ||
-            !openTime.includes(':') ||
-            !closeTime.includes(':')
+            !/^\d{1,2}:\d{2}$/.test(openTime) ||
+            !/^\d{1,2}:\d{2}$/.test(closeTime)
         ) {
             return false;
         }
 
-        const now = new Date();
-        let currentMinutes = now.getHours() * 60 + now.getMinutes();
-
         const [openHour, openMinute] = openTime.split(':').map(Number);
         const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+
+        // Validate time ranges
+        if (
+            openHour < 0 || openHour > 23 || openMinute < 0 || openMinute > 59 ||
+            closeHour < 0 || closeHour > 23 || closeMinute < 0 || closeMinute > 59
+        ) {
+            return false;
+        }
+
+        // Handle 24-hour open case
+        if (openHour === closeHour && openMinute === closeMinute) {
+            return true;
+        }
+
+        const now = new Date();
+        let currentMinutes = now.getHours() * 60 + now.getMinutes();
 
         const openMinutes = openHour * 60 + openMinute;
         let closeMinutes = closeHour * 60 + closeMinute;

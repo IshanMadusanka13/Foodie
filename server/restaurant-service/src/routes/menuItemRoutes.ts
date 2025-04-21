@@ -9,6 +9,7 @@ router.post(
     '/',
     authenticate,
     verifyRole(['restaurant_admin']),
+    upload.array('images'),
     controller.createMenuItem
 );
 
@@ -21,6 +22,7 @@ router.put(
     '/:id',
     authenticate,
     verifyRole(['restaurant_admin']),
+    upload.array('images'),
     controller.updateMenuItem
 );
 
@@ -40,7 +42,7 @@ router.post(
     '/upload-multiple',
     authenticate,
     verifyRole(['restaurant_admin']),
-    upload.array('images', 5),
+    upload.array('images'),
     controller.uploadMultipleImages
 );
 

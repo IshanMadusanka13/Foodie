@@ -1,17 +1,54 @@
 import { Request, Response, NextFunction } from 'express';
 import MenuItemService from '../services/menuItemService';
 import MenuItem from '../models/MenuItem';
+import { uploadImagesToSupabase } from '../utils/supabaseUpload';
 
 interface MulterRequest extends Request {
     files?: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] };
 }
 
-const createMenuItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const createMenuItem = async (req: Request, res: Response): Promise<void> => {
     try {
-        const menuItem = await MenuItemService.createMenuItem(req.body);
+        const price = parseFloat(req.body.price);
+        if (isNaN(price) || price < 0) {
+            res.status(400).json({ status: 'Error', message: 'Invalid price. Price must be a number ≥ 0.' });
+        }
+
+        const files = req.files as Express.Multer.File[];
+        const imageUrls = files ? await uploadImagesToSupabase(files, 'menu-items') : [];
+
+        const menuItem = await MenuItemService.createMenuItem({
+            ...req.body,
+            price,
+            imageUrls
+        });
+
         res.status(201).json({ status: 'Success', data: { menuItem } });
-    } catch (error) {
-        next(error); 
+    } catch (error: any) {
+        res.status(400).json({ status: 'Error', message: error.message });
+    }
+};
+
+const updateMenuItem = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const price = parseFloat(req.body.price);
+        if (!isNaN(price) && price < 0) {
+            res.status(400).json({ status: 'Error', message: 'Invalid price. Price must be ≥ 0.' });
+        }
+
+        const files = req.files as Express.Multer.File[];
+        const imageUrls = files && Array.isArray(files) && files.length
+            ? await uploadImagesToSupabase(files, 'menu-items')
+            : undefined;
+
+        const item = await MenuItemService.updateMenuItem(req.params.id, {
+            ...req.body,
+            ...(imageUrls && { imageUrls }),
+        });
+
+        res.status(200).json({ status: 'Success', data: { item } });
+    } catch (error: any) {
+        res.status(error.message?.includes('not found') ? 404 : 400).json({ status: 'Error', message: error.message });
     }
 };
 
@@ -38,16 +75,6 @@ const getAllMenuItems = async (req: Request, res: Response, next: NextFunction):
         next(error);
     }
 };
-
-const updateMenuItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const item = await MenuItemService.updateMenuItem(req.params.id, req.body);
-        res.status(200).json({ status: 'Success', data: { item } });
-    } catch (error) {
-        next(error);
-    }
-};
-
 
 const deleteMenuItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -95,7 +122,7 @@ const uploadMultipleImages = async (req: MulterRequest, res: Response, next: Nex
             return;
         }
 
-        const imageUrls = files.map((file) => `/uploads/${file.filename}`);
+        const imageUrls = await uploadImagesToSupabase(files, 'menu-items');
 
         res.status(200).json({
             message: 'Images uploaded successfully',
