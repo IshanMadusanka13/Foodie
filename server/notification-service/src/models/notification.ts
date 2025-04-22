@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema({
-    message: String,
-    type: String,
-    recipient: String,
-    status: { type: String, default: 'pending' },
+    userEmail: { type: String, required: true },
+    userPhone: { type: String, required: true },
+    message: { type: String, required: true},
+    type: { type: String, enum: ['email' , 'sms' , 'both'], default: 'both' },
     createdAt: { type: Date, default: Date.now }
 });
 
-export const Notification = mongoose.model('Notification', notificationSchema);
+module.exports = mongoose.model('Notification', notificationSchema);
