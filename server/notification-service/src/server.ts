@@ -11,12 +11,15 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
+
+// Initialize socket.io
 const io = initializeSocket(server);
+// Attach io to app
 app.set('io', io);
 
 app.use(cors());
 app.use(express.json());
 app.use('/api/notifications', notificationRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5004;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
