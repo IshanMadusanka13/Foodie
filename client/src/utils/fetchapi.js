@@ -4,6 +4,7 @@ const PAYMENT_SERVICE_API_URL = 'http://localhost:5002/api';
 const ORDER_SERVICE_API_URL = 'http://localhost:5003/api';
 const NOTIFICATION_SERVICE_API_URL = 'http://localhost:5004/api';
 const DELIVERY_SERVICE_API_URL = 'http://localhost:5005/api';
+;
 
 const fetchApi = async (endpoint, options = {}) => {
     const headers = {
@@ -70,6 +71,28 @@ export const api = {
         fetchApi(USER_SERVICE_API_URL + '/users', {
             method: 'POST',
             body: JSON.stringify(userData)
+        }),
+
+     // Delivery
+     getNearbyDeliveries: (longitude, latitude, maxDistance = 10000) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}`),
+    
+    getRiderDeliveries: (riderId) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/rider/${riderId}`),
+    
+    getDeliveryById: (deliveryId) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}`),
+    
+    acceptDelivery: (deliveryId, riderId) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/accept`, {
+            method: 'PUT',
+            body: JSON.stringify({ riderId })
+        }),
+    
+    updateDeliveryStatus: (deliveryId, status) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status })
         }),
 
 };
