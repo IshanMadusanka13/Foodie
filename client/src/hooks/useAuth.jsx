@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  console.log("Current User:", currentUser);
   useEffect(() => {
 
     const token = localStorage.getItem('token');

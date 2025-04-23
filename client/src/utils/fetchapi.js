@@ -73,6 +73,9 @@ export const api = {
             body: JSON.stringify(userData)
         }),
 
+    getCurrentUser: (email) =>
+        fetchApi(`${USER_SERVICE_API_URL}/users/${email}`),
+
      // Delivery
      getNearbyDeliveries: (longitude, latitude, maxDistance = 10000) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}`),
