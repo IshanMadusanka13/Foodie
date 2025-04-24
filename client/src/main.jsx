@@ -17,7 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <App />
         <Footer />
       </BrowserRouter>
-      </AuthProvider >
+      </AuthProvider >       
     </ThemeProvider>
   </React.StrictMode>
 );

@@ -1,0 +1,14 @@
+/* Fix Leaflet map container */
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+}
+
+/* Fix background image container */
+.background-container {
+    background-size: cover;
+    background-position: center;
+    min-height: 30vh;
+    padding: 40px;
+    color: white;
+}
