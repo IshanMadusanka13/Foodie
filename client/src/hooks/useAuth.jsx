@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     
     if (foodie_user) {
       try {
-        const parsedUser = JSON.parse(foodie_user); // ✅ Parse the stored JSON
+        const parsedUser = JSON.parse(foodie_user);
         api.getCurrentUser(parsedUser.user_id)
           .then(user => {
             setCurrentUser(user);

@@ -30,7 +30,7 @@ const Login = () => {
             });
 
             if (success) {
-                navigate('/');
+                navigate('/profile');
             } else {
                 setLoginError(error || 'Login failed. Please try again.');
             }
