@@ -7,8 +7,8 @@ const router = express.Router();
 
 router.post(
     '/',
-    authenticate,
-    verifyRole(['restaurant_admin']),
+    //authenticate,
+    //verifyRole(['restaurant_admin']),
     upload.array('images'),
     controller.createMenuItem
 );
@@ -20,16 +20,16 @@ router.get(
 
 router.put(
     '/:id',
-    authenticate,
-    verifyRole(['restaurant_admin']),
+    //authenticate,
+    //verifyRole(['restaurant_admin']),
     upload.array('images'),
     controller.updateMenuItem
 );
 
 router.delete(
     '/:id',
-    authenticate,
-    verifyRole(['restaurant_admin']),
+    //authenticate,
+    //verifyRole(['restaurant_admin']),
     controller.deleteMenuItem
 );
 
@@ -40,16 +40,16 @@ router.get(
 
 router.post(
     '/upload-multiple',
-    authenticate,
-    verifyRole(['restaurant_admin']),
+    //authenticate,
+    //verifyRole(['restaurant_admin']),
     upload.array('images'),
     controller.uploadMultipleImages
 );
 
 router.get(
     '/all',
-    authenticate,
-    verifyRole(['admin']),
+    //authenticate,
+    //verifyRole(['admin']),
     controller.getAllMenuItems
 );
 

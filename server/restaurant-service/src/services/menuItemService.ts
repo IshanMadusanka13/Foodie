@@ -12,6 +12,10 @@ const getMenuItemsByRestaurant = async (restaurantId: string, filters: Record<st
     return await MenuItem.find(query);
 };
 
+const getMenuItemById = async (id: string) => {
+    return await MenuItem.findById(id);
+};
+
 const updateMenuItem = async (menuItemId: string, updateData: Partial<IMenuItem>) => {
     const updated = await MenuItem.findByIdAndUpdate(menuItemId, updateData, { new: true });
     if (!updated) {
@@ -47,6 +51,7 @@ const getPaginatedMenuItems = async (restaurantId: string, filters: Record<strin
 export default {
     createMenuItem,
     getMenuItemsByRestaurant,
+    getMenuItemById,
     updateMenuItem,
     deleteMenuItem,
     getPaginatedMenuItems,

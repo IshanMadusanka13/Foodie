@@ -94,9 +94,7 @@ const getAllRestaurants = async (): Promise<RestaurantWithOpenStatus[]> => {
 };
 
 // Get By ID
-const getRestaurantById = async (
-    restaurantId: string
-): Promise<RestaurantWithOpenStatus> => {
+const getRestaurantById = async (restaurantId: string): Promise<RestaurantWithOpenStatus> => {
     try {
         if (!restaurantId) throw new Error('restaurant ID is required');
 

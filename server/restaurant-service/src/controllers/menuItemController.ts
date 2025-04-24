@@ -67,6 +67,19 @@ const getMenuItemsByRestaurant = async (req: Request, res: Response, next: NextF
     }
 };
 
+const getMenuItemById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const item = await MenuItemService.getMenuItemById(req.params.id);
+        if (!item) {
+            res.status(404).json({ status: 'Error', message: 'Menu item not found' });
+            return;
+        }
+        res.status(200).json({ status: 'Success', data: { item } });
+    } catch (error) {
+        res.status(400).json({ status: 'Error', message: 'Invalid ID format' });
+    }
+};
+
 const getAllMenuItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const items = await MenuItem.find().populate('restaurantId', 'name address');
@@ -137,6 +150,7 @@ export default {
     createMenuItem,
     getMenuItemsByRestaurant,
     getAllMenuItems,
+    getMenuItemById,
     updateMenuItem,
     deleteMenuItem,
     getPaginatedMenuItems,
