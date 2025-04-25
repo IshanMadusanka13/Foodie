@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { api } from '../../utils/fetchapi';
 import MenuItemList from '../../pages/MenuItemService/MenuList';
 import backgroundImage from '../../assets/hero.jpg';
+import MenuItemCategory from '../MenuItemService/MenuItemCategory';
 
 const RestaurantProfile = () => {
     const { id } = useParams();
@@ -33,12 +34,12 @@ const RestaurantProfile = () => {
     if (loading) return <div className="p-8 text-lg">Loading...</div>;
     if (error) return <div className="p-8 text-red-500">{error}</div>;
 
-    const renderSectionContent = () => {
+    const renderSectionContent = () => {        
         switch (activeSection) {
             case 'menu':
                 return <MenuItemList restaurantId={id} />;
-            case 'reviews':
-                return <div>Reviews content goes here</div>;
+            case 'categories':
+                return <MenuItemCategory restaurantId={id} />;
             case 'photos':
                 return <div>Photos content goes here</div>;
             case 'updates':
@@ -90,10 +91,10 @@ const RestaurantProfile = () => {
                         Menu
                     </li>
                     <li
-                        onClick={() => setActiveSection('reviews')}
-                        className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'reviews' ? 'bg-gray-600' : ''}`}
+                        onClick={() => setActiveSection('categories')}
+                        className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'categories' ? 'bg-gray-600' : ''}`}
                     >
-                        Reviews
+                        Category
                     </li>
                     <li
                         onClick={() => setActiveSection('photos')}

@@ -135,6 +135,11 @@ export const api = {
             method: 'GET',
         }),
 
+    getMenuItemsByCategory: (category) =>
+        fetchApi(`${MENU_ITEM_API_URL}/category?category=${encodeURIComponent(category)}`, {
+            method: 'GET',
+        }),
+
     getPaginatedMenuItems: (restaurantId, page = 1, limit = 10) =>
         fetchApi(`${MENU_ITEM_API_URL}/restaurant/${restaurantId}/paginated?page=${page}&limit=${limit}`, {
             method: 'GET',

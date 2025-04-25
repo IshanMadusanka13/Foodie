@@ -10,6 +10,18 @@ export interface IMenuItem extends Document {
     imageUrls?: string[]; 
 }
 
+const CATEGORIES = [
+    'Appetizers',
+    'Salads',
+    'Main Course',
+    'Pizzas',
+    'Burgers & Sandwiches',
+    'Asian Specials',
+    'Mexican',
+    'Beverages',
+    'Desserts',
+];
+
 const menuItemSchema = new Schema<IMenuItem>(
     {
         restaurantId: {
@@ -21,7 +33,8 @@ const menuItemSchema = new Schema<IMenuItem>(
         description: { type: String },
         price: { type: Number, required: true },
         isAvailable: { type: Boolean, default: true },
-        category: { type: String },
+        category: {
+            type: String, enum: CATEGORIES, required: true, },
         imageUrls: {
             type: [String],
             default: [],

@@ -67,6 +67,23 @@ const getMenuItemsByRestaurant = async (req: Request, res: Response, next: NextF
     }
 };
 
+const getMenuItemsByCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { category } = req.query;
+        console.log("Category being queried:", category);
+
+        if (!category || typeof category !== 'string') {
+            res.status(400).json({ status: 'Error', message: 'Category is required' });
+            return;
+        }
+        const items = await MenuItemService.getMenuItemsByCategory(category);
+        console.log("Found items:", items); 
+        res.status(200).json({ status: 'Success', data: { items } });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getMenuItemById = async (req: Request, res: Response): Promise<void> => {
     try {
         const item = await MenuItemService.getMenuItemById(req.params.id);
@@ -151,6 +168,7 @@ export default {
     getMenuItemsByRestaurant,
     getAllMenuItems,
     getMenuItemById,
+    getMenuItemsByCategory,
     updateMenuItem,
     deleteMenuItem,
     getPaginatedMenuItems,

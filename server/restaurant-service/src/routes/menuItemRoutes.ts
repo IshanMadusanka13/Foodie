@@ -18,6 +18,11 @@ router.get(
     controller.getMenuItemsByRestaurant
 );
 
+router.get(
+    '/category',
+    controller.getMenuItemsByCategory
+);
+
 router.put(
     '/:id',
     //authenticate,
