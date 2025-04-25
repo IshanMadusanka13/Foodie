@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../utils/fetchapi';
 
 import backgroundImage from '../../assets/hero.jpg';
 import foodie from '../../assets/foodie.png';
@@ -14,16 +12,7 @@ const JoinUs_Restaurant = () => {
         minHeight: '30vh',
         padding: '40px',
         color: 'white',
-    };
-
-    const foodieimg = {
-        backgroundImage: `url(${foodie})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-        padding: '40px',
-        color: 'white',
-    };    
+    };   
 
     return (
         <div>

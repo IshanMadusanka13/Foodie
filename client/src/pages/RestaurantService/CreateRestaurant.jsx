@@ -44,7 +44,7 @@ LocationPicker.propTypes = {
 };
 
 // Main Component
-const CreateRestaurant = ({ step, setStep }) => {
+const CreateRestaurant = () => {
     const [form, setForm] = useState({
         name: '',
         address: '',

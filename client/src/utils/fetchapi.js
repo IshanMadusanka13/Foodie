@@ -100,7 +100,7 @@ export const api = {
             // headers: {
             //     Authorization: `Bearer ${token}`,
             // },
-            body: formData, // formData should include text fields + file(s)
+            body: formData, 
         }),
 
 

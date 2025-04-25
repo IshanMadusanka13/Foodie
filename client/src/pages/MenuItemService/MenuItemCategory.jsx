@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';  // Import PropTypes
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types'; 
 import { api } from '../../utils/fetchapi';
-import { SearchIcon } from '@heroicons/react/solid';  // Import the search icon from Heroicons
-import { Pencil, Trash2 } from 'lucide-react';
-import EditMenuItem from './EditMenuItem';  // Import EditMenuItem
+import { SearchIcon } from '@heroicons/react/solid'; 
 
 const MenuItemCategory = ({ restaurantId }) => {
     const [menuItems, setMenuItems] = useState([]);
@@ -31,7 +29,7 @@ const MenuItemCategory = ({ restaurantId }) => {
             try {
                 const res = await api.getMenuItemsByRestaurant(restaurantId);
                 setMenuItems(res?.data?.items || []);
-                setFilteredItems(res?.data?.items || []);  // Initialize filtered items
+                setFilteredItems(res?.data?.items || []); 
             } catch (err) {
                 console.error(err);
                 setError('Failed to load menu items');
@@ -81,7 +79,7 @@ const MenuItemCategory = ({ restaurantId }) => {
                         className="border border-gray-300 rounded p-2 text-gray-700 placeholder-gray-400 flex-1 sm:w-64"
                     />
                     <button
-                        onClick={() => { }} // Optional: Handle search explicitly if needed
+                        onClick={() => { }} 
                         className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 flex items-center justify-center"
                     >
                         <SearchIcon className="w-5 h-5" />
@@ -94,7 +92,7 @@ const MenuItemCategory = ({ restaurantId }) => {
 
             {/* Category Buttons */}
             <div className="flex flex-wrap gap-3 py-4 mb-6 border-b border-gray-200 overflow-x-auto">
-                {/* Optional: 'All' button to reset filter */}
+                {/* 'All' button to reset filter */}
                 {menuItems.length > 0 && (
                     <button
                         onClick={() => {
@@ -103,12 +101,12 @@ const MenuItemCategory = ({ restaurantId }) => {
                             setNotFoundMessage('');
                         }}
                         className={`
-                flex items-center gap-2 px-4 py-2 min-w-fit rounded-full text-sm font-medium 
-                transition duration-200 border shadow-sm
-                ${!selectedCategory
+                            flex items-center gap-2 px-4 py-2 min-w-fit rounded-full text-sm font-medium 
+                            transition duration-200 border shadow-sm
+                            ${!selectedCategory
                                 ? 'bg-blue-600 text-white border-blue-700 shadow-md'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
-            `}
+                        `}
                     >
                         <span className="text-lg">🍽️</span>
                         <span className="text-xs sm:text-sm">All</span>
@@ -130,12 +128,12 @@ const MenuItemCategory = ({ restaurantId }) => {
                                     setNotFoundMessage(filtered.length ? '' : `No items found in "${cat.name}" category.`);
                                 }}
                                 className={`
-                        flex items-center gap-2 px-4 py-2 min-w-fit rounded-full text-sm font-medium 
-                        transition duration-200 border shadow-sm
-                        ${isSelected
+                                    flex items-center gap-2 px-4 py-2 min-w-fit rounded-full text-sm font-medium 
+                                    transition duration-200 border shadow-sm
+                                    ${isSelected
                                         ? 'bg-blue-600 text-white border-blue-700 shadow-md'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
-                    `}
+                                    `}
                             >
                                 <span className="text-lg">{cat.icon}</span>
                                 <span className="text-xs sm:text-sm">{cat.name}</span>
@@ -144,7 +142,7 @@ const MenuItemCategory = ({ restaurantId }) => {
                     })}
             </div>
 
-            {/* Responsive Item Grid */}
+            {/* Item Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredItems.map((item) => (
                     <div
