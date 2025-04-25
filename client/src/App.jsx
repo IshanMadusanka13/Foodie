@@ -12,6 +12,7 @@ import Profile from './pages/userService/profile';
 import JoinUs_Restaurant from './pages/RestaurantService/JoinUs_RestaurantMain';
 import RestaurantList from './pages/RestaurantService/RestaurantList';
 import RestaurantProfile from './pages/RestaurantService/RestaurantProfile ';
+import CreateRestaurant from './pages/RestaurantService/CreateRestaurant';
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
       <Route path="/joinUs" element={<JoinUs_Restaurant />} />
       <Route path="/restaurant" element={<RestaurantList />} />
       <Route path="/restaurant/:id" element={<RestaurantProfile />} />
+      <Route path="/createRestaurant" element={<CreateRestaurant />} />
 
     </Routes>
   )

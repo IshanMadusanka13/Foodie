@@ -1,8 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
 import controller from '../controllers/restaurantController';
 import { authenticate, verifyRole } from '../middlewares/auth';  
-import upload from '../middlewares/upload';
-
+//import upload from '../middlewares/upload';
+import multer from 'multer';
+const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
 
 router.post(

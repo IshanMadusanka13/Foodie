@@ -6,36 +6,58 @@ import { uploadImagesToSupabase } from '../utils/supabaseUpload';
 // Create Restaurant
 const createRestaurant = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { longitude, latitude } = req.body;
+        // Log the request body
+        console.log('Request Body:', req.body);
+
+        const { longitude, latitude, name, address, email, ownerId } = req.body;
 
         const lon = parseFloat(longitude);
         const lat = parseFloat(latitude);
 
+        console.log('Longitude:', lon, 'Latitude:', lat);
+
+        // Validate latitude and longitude
         if (isNaN(lon) || isNaN(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
+            console.log('Invalid latitude/longitude');
             res.status(400).json({ status: 'Error', message: 'Invalid longitude or latitude' });
+            return;
         }
 
-        // Ensure files exist before trying to upload them
-        const files = req.files as Express.Multer.File[] | undefined;
-        const imageUrls = files && files.length > 0 ? await uploadImagesToSupabase(files, 'restaurants') : [];
+        // Ensure required fields
+        if (!name || !address || !email || !ownerId) {
+            console.log('Missing required fields');
+            res.status(400).json({ status: 'Error', message: 'Missing required fields' });
+            return;
+        }
 
-        // Add default image if empty
+        // Handle image uploads
+        const files = req.files as Express.Multer.File[] | undefined;
+        console.log('Files:', files);
+
+        const imageUrls = files && files.length > 0 ? await uploadImagesToSupabase(files, 'restaurants') : [];
+        console.log('Image URLs:', imageUrls);
+
         if (imageUrls.length === 0) {
             imageUrls.push('https://waymjbgcpfbxrjxrlizr.supabase.co/storage/v1/object/public/foodie/Restaurants/default_restaurant.png');
         }
-        
+
         const restaurantData = {
             ...req.body,
             imageUrls,
             location: {
                 longitude: lon,
                 latitude: lat,
-            }
+            },
         };
 
+        console.log('Restaurant Data:', restaurantData);
+
         const restaurant = await RestaurantService.createRestaurant(restaurantData);
+        console.log('Created Restaurant:', restaurant);
+
         res.status(201).json({ status: 'Success', data: { restaurant } });
     } catch (error: any) {
+        console.error('Error:', error);
         res.status(400).json({ status: 'Error', message: error.message || 'Failed to create restaurant' });
     }
 };
