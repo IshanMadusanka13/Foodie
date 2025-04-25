@@ -104,7 +104,7 @@ const Register = () => {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-700 to-primary-500 dark:from-slate-900 dark:to-green-900 p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-10">
-                    <img src="/src/assets/logo.jpg" alt="Foodie Logo" className="h-16 w-16 mx-auto" />
+                    <img src="/logo.png" alt="Foodie Logo" className="h-16 w-30 mx-auto" />
                     <h1 className="mt-4 text-3xl font-bold text-gray-900 dark:text-white">Create an account</h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">Join us to enjoy fast food delivery!</p>
                 </div>

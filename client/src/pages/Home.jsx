@@ -43,12 +43,6 @@ const HeroSection = () => {
                             >
                                 Order Now
                             </Link>
-                            <Link
-                                to="#"
-                                className="px-8 py-3 text-lg font-semibold rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/20"
-                            >
-                                How It Works
-                            </Link>
                         </div>
                     </div>
                 </div>
