@@ -94,14 +94,15 @@ export const api = {
             method: 'GET',
         }),
 
-    updateRestaurant: (id, restaurantData, token) =>
+    updateRestaurant: (id, formData) =>
         fetchApi(`${RESTAURANT_SERVICE_API_URL}/${id}`, {
             method: 'PUT',
             // headers: {
             //     Authorization: `Bearer ${token}`,
             // },
-            body: JSON.stringify(restaurantData),
+            body: formData, // formData should include text fields + file(s)
         }),
+
 
     deleteRestaurant: (id, token) =>
         fetchApi(`${RESTAURANT_SERVICE_API_URL}/${id}`, {

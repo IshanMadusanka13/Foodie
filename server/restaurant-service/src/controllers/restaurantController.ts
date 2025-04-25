@@ -65,13 +65,31 @@ const createRestaurant = async (req: Request, res: Response): Promise<void> => {
 // Update Restaurant
 const updateRestaurant = async (req: Request, res: Response): Promise<void> => {
     try {
-        const files = req.files as Express.Multer.File[] | undefined;
-        let imageUrls = files && files.length > 0 ? await uploadImagesToSupabase(files, 'restaurants') : [];
+        console.log('req.body:', req.body);    // Form fields
+        console.log('req.file:', req.file);    // Single uploaded file
 
-        // If no images provided AND no imageUrls in body, use default
-        if (imageUrls.length === 0 && (!req.body.imageUrls || req.body.imageUrls.length === 0)) {
+        const file = req.file as Express.Multer.File | undefined;
+        let imageUrls: string[] = [];
+
+        if (file) {
+            imageUrls = await uploadImagesToSupabase([file], 'Restaurant');
+        } else if (req.body.imageUrls) {
+            try {
+                imageUrls = JSON.parse(req.body.imageUrls);
+            } catch (e) {
+                throw new Error('Invalid imageUrls format');
+            }
+        }
+
+        // If no images provided AND no valid imageUrls in body, use default
+        const hasImageUrls =
+            req.body.imageUrls &&
+            Array.isArray(JSON.parse(req.body.imageUrls)) &&
+            JSON.parse(req.body.imageUrls).length > 0;
+
+        if (imageUrls.length === 0 && !hasImageUrls) {
             imageUrls = [
-                'https://waymjbgcpfbxrjxrlizr.supabase.co/storage/v1/object/public/foodie/Restaurants/default_restaurant.png'
+                'https://waymjbgcpfbxrjxrlizr.supabase.co/storage/v1/object/public/foodie/Restaurants/default_restaurant.png',
             ];
         }
 
@@ -80,7 +98,7 @@ const updateRestaurant = async (req: Request, res: Response): Promise<void> => {
             ...(imageUrls.length > 0 && { imageUrls }),
         };
 
-        // Only update location if both longitude and latitude are provided
+        // Parse location if present
         const { longitude, latitude } = req.body;
         if (longitude !== undefined && latitude !== undefined) {
             const lon = parseFloat(longitude);
@@ -88,15 +106,21 @@ const updateRestaurant = async (req: Request, res: Response): Promise<void> => {
 
             if (isNaN(lon) || isNaN(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
                 res.status(400).json({ status: 'Error', message: 'Invalid longitude or latitude' });
+                return;
             }
 
             updateData.location = { longitude: lon, latitude: lat };
         }
 
         const restaurant = await RestaurantService.updateRestaurant(req.params.id, updateData);
+        console.log("Updated restaurant:", restaurant);
         res.status(200).json({ status: 'Success', data: { restaurant } });
+
     } catch (error: any) {
-        res.status(error.message?.includes('not found') ? 404 : 400).json({ status: 'Error', message: error.message });
+        res.status(error.message?.includes('not found') ? 404 : 400).json({
+            status: 'Error',
+            message: error.message,
+        });
     }
 };
 

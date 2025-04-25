@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';  // Import PropTypes
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';  
 import { api } from '../../utils/fetchapi';
-import { SearchIcon } from '@heroicons/react/solid';  // Import the search icon from Heroicons
+import { SearchIcon } from '@heroicons/react/solid';  
 import { Pencil, Trash2 } from 'lucide-react';
-import EditMenuItem from './EditMenuItem';  // Import EditMenuItem
+import EditMenuItem from './EditMenuItem'; 
 
 const MenuItemList = ({ restaurantId }) => {
     const [menuItems, setMenuItems] = useState([]);
@@ -12,7 +12,7 @@ const MenuItemList = ({ restaurantId }) => {
     const [searchId, setSearchId] = useState('');
     const [filteredItems, setFilteredItems] = useState([]);
     const [notFoundMessage, setNotFoundMessage] = useState('');
-    const [editingItem, setEditingItem] = useState(null);  // State for editing item
+    const [editingItem, setEditingItem] = useState(null);  
 
     useEffect(() => {
         const fetchMenuItems = async () => {
@@ -85,7 +85,7 @@ const MenuItemList = ({ restaurantId }) => {
                         formData.append("isAvailable", editingItem.isAvailable.toString());
 
                         if (editingItem.newImage) {
-                            formData.append("image", editingItem.newImage);  // backend should handle this
+                            formData.append("image", editingItem.newImage);  
                         }
 
                         const updated = await api.updateMenuItem(editingItem._id, formData, {
@@ -118,7 +118,6 @@ const MenuItemList = ({ restaurantId }) => {
                         className="border border-gray-300 rounded p-2 text-gray-700 placeholder-gray-400 w-64"
                     />
                     <button
-                        onClick={() => handleSearch()}  // Optional: Handle search explicitly if needed
                         className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 flex items-center"
                     >
                         <SearchIcon className="w-5 h-5" />
@@ -173,7 +172,7 @@ const MenuItemList = ({ restaurantId }) => {
 
 // Prop validation for restaurantId
 MenuItemList.propTypes = {
-    restaurantId: PropTypes.string.isRequired,  // Expecting a string for restaurantId
+    restaurantId: PropTypes.string.isRequired,  
 };
 
 export default MenuItemList;

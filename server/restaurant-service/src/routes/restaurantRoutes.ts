@@ -1,17 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
 import controller from '../controllers/restaurantController';
 import { authenticate, verifyRole } from '../middlewares/auth';  
-//import upload from '../middlewares/upload';
-import multer from 'multer';
-const upload = multer({ dest: 'uploads/' });
-const router = express.Router();
+import upload from '../middlewares/upload';
 
-router.post(
-    '/',
-    //authenticate,
-    //verifyRole(['restaurant_admin']),
-    controller.createRestaurant
-);
+const router = express.Router();
 
 router.get(
     '/',
@@ -23,13 +15,6 @@ router.get(
     controller.getRestaurantById
 );
 
-router.put(
-    '/:id',
-    //authenticate,
-    //verifyRole(['restaurant_admin']),
-    controller.updateRestaurant
-);
-
 router.delete(
     '/:id',
     //authenticate,
@@ -37,16 +22,16 @@ router.delete(
     controller.deleteRestaurant
 );
 
-// router.post(
-//     '/',
-//     upload.single('image'),
-//     controller.createRestaurant
-// );
+router.post(
+    '/',
+    upload.single('image'),
+    controller.createRestaurant
+);
 
-// router.put(
-//     '/:id',
-//     upload.single('image'),
-//     controller.updateRestaurant
-// );
+router.put(
+    '/:id',
+    upload.single('image'),
+    controller.updateRestaurant
+);
 
 export default router;
