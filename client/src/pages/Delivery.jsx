@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../utils/fetchapi';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -13,12 +13,13 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom icons
 const restaurantIcon = new L.Icon({
   iconUrl: '/restaurant-marker.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
+  // Use different property names for fallbacks
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
 });
 
 const customerIcon = new L.Icon({
@@ -26,6 +27,17 @@ const customerIcon = new L.Icon({
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
+  // Use different property names for fallbacks
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
+});
+
+const riderIcon = new L.Icon({
+  iconUrl: '/rider-marker.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  // Use different property names for fallbacks
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
 });
 
 // Component to recenter map
@@ -38,88 +50,193 @@ function MapCenterSetter({ center }) {
 }
 
 const Delivery = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useAuth() || { currentUser: { user_id: 'dummy-user-id', name: 'Test Rider' } };
   const [nearbyDeliveries, setNearbyDeliveries] = useState([]);
   const [activeDelivery, setActiveDelivery] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
+  //const [userLocation, setUserLocation] = useState({ latitude: 6.6993360, longitude: 79.9109078 }); //home
+  const [userLocation, setUserLocation] = useState({ latitude: 6.915185, longitude: 79.973575 }); //sliit
   const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]); // Default to Sri Lanka center
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [routeToDestination, setRouteToDestination] = useState(null);
+  const [estimatedTime, setEstimatedTime] = useState(null);
+  const [estimatedDistance, setEstimatedDistance] = useState(null);
 
-  // Get user's location
+ 
+  
+  // Dummy data for nearby deliveries
+  const dummyNearbyDeliveries = [
+    {
+      delivery_id: "d234567",
+      order_id: "o890123",
+      status: "pending",
+      restaurant_location: {
+        latitude: 6.923710,
+        longitude: 79.977759
+      },//Land of Kings Cafe & Restaurant
+      customer_location: {
+        latitude: 6.928725,
+        longitude: 79.978017
+      },//bodima
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      delivery_id: "d345678",
+      order_id: "o901234",
+      status: "pending",
+      restaurant_location: {
+        latitude: 6.913618,
+        longitude: 79.972005
+      },//avanya restaurant
+      customer_location: {
+        latitude: 6.928725,
+        longitude: 79.978017
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+
+  // Initialize with dummy data
+  useEffect(() => {
+    // Uncomment one of these to test different states
+    //setActiveDelivery(dummyActiveDelivery);
+    // setActiveDelivery({...dummyActiveDelivery, status: 'collected'}); // To test collected state
+    setNearbyDeliveries(dummyNearbyDeliveries);
+    setLoading(false);
+    
+    // Simulate getting user location
+    setTimeout(() => {
+      const simulatedUserLocation = {
+        latitude: 7.8731 + (Math.random() * 0.01 - 0.005),
+        longitude: 80.7718 + (Math.random() * 0.01 - 0.005)
+      };
+      setUserLocation(simulatedUserLocation);
+      setMapCenter([simulatedUserLocation.latitude, simulatedUserLocation.longitude]);
+    }, 1000);
+  }, []);
+
+  // Get user's location (real implementation)
   useEffect(() => {
     if (navigator.geolocation) {
+      // Add options for better accuracy
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      };
+      
+      // Get initial location
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          console.log("Location obtained:", latitude, longitude);
           setUserLocation({ latitude, longitude });
           setMapCenter([latitude, longitude]);
         },
         (error) => {
-          console.error("Error getting location:", error);
-          setError("Could not get your location. Please enable location services.");
-        }
-      );
-    } else {
-      setError("Geolocation is not supported by your browser.");
-    }
-  }, []);
-
-  // Fetch nearby deliveries
-  useEffect(() => {
-    const fetchNearbyDeliveries = async () => {
-      if (!userLocation) return;
-      
-      try {
-        setLoading(true);
-        const deliveries = await api.getNearbyDeliveries(userLocation.longitude, userLocation.latitude);
-        setNearbyDeliveries(deliveries);
-      } catch (err) {
-        console.error("Error fetching nearby deliveries:", err);
-        setError("Failed to load nearby deliveries.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNearbyDeliveries();
-    
-    // Poll for new deliveries every 30 seconds
-    const interval = setInterval(fetchNearbyDeliveries, 30000);
-    return () => clearInterval(interval);
-  }, [userLocation]);
-
-  // Fetch active delivery if rider has one
-  useEffect(() => {
-    const fetchActiveDelivery = async () => {
-      if (!currentUser) return;
-      
-      try {
-        const deliveries = await api.getRiderDeliveries(currentUser.user_id);
-        const active = deliveries.find(d => 
-          d.status === 'accepted' || d.status === 'collected'
-        );
-        
-        if (active) {
-          setActiveDelivery(active);
-          // Center map on restaurant if collecting, customer if delivering
-          if (active.status === 'accepted') {
-            setMapCenter([active.restaurant_location.latitude, active.restaurant_location.longitude]);
-          } else if (active.status === 'collected') {
-            setMapCenter([active.customer_location.latitude, active.customer_location.longitude]);
+          // More specific error messages based on error code
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              console.error("Location permission was denied");
+              // Continue with dummy location
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.error("Location information is unavailable");
+              // Continue with dummy location
+              break;
+            case error.TIMEOUT:
+              console.error("Request to get location timed out");
+              // Continue with dummy location
+              break;
+            default:
+              console.error(`An unknown error occurred: ${error.message}`);
+              // Continue with dummy location
           }
+        },
+        options
+      );
+      
+      // Simulate continuous location updates for testing
+      const intervalId = setInterval(() => {
+        const updatedLocation = {
+          latitude: userLocation.latitude + (Math.random() * 0.0002 - 0.0001),
+          longitude: userLocation.longitude + (Math.random() * 0.0002 - 0.0001)
+        };
+        setUserLocation(updatedLocation);
+        
+        // Update route if we have an active delivery
+        if (activeDelivery) {
+          updateRouteToDestination(
+            updatedLocation,
+            activeDelivery.status === 'accepted' 
+              ? activeDelivery.restaurant_location 
+              : activeDelivery.customer_location
+          );
         }
-      } catch (err) {
-        console.error("Error fetching active delivery:", err);
-      }
-    };
+      }, 5000);
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [activeDelivery]);
 
-    fetchActiveDelivery();
-  }, [currentUser]);
+  // Update route when active delivery changes
+  useEffect(() => {
+    if (userLocation && activeDelivery) {
+      const destination = activeDelivery.status === 'accepted' 
+        ? activeDelivery.restaurant_location 
+        : activeDelivery.customer_location;
+      
+      updateRouteToDestination(userLocation, destination);
+    }
+  }, [activeDelivery, userLocation]);
 
+  // Function to update the route
+  const updateRouteToDestination = (origin, destination) => {
+    try {
+      // For simplicity, we'll just draw a straight line
+      // In a real app, you would use a routing API like OSRM, GraphHopper, or Google Directions
+      const routePoints = [
+        [origin.latitude, origin.longitude],
+        [destination.latitude, destination.longitude]
+      ];
+      
+      setRouteToDestination(routePoints);
+      
+      // Calculate estimated time and distance
+      const distance = calculateDistance(
+        origin.latitude, 
+        origin.longitude, 
+        destination.latitude, 
+        destination.longitude
+      );
+      
+      setEstimatedDistance(distance);
+      
+      // Rough estimate: assume 30 km/h average speed
+      const timeInHours = distance / 30;
+      const timeInMinutes = Math.round(timeInHours * 60);
+      setEstimatedTime(timeInMinutes);
+      
+    } catch (err) {
+      console.error("Error updating route:", err);
+    }
+  };
+
+  // Mock API calls with dummy data
   const handleAcceptDelivery = async (deliveryId) => {
     try {
-      const result = await api.acceptDelivery(deliveryId, currentUser.user_id);
+      // Find the delivery in our dummy data
+      const delivery = nearbyDeliveries.find(d => d.delivery_id === deliveryId);
+      if (!delivery) throw new Error("Delivery not found");
+      
+      // Update its status
+      const result = {
+        ...delivery,
+        status: 'accepted'
+      };
+      
       setActiveDelivery(result);
       setNearbyDeliveries(nearbyDeliveries.filter(d => d.delivery_id !== deliveryId));
       setMapCenter([result.restaurant_location.latitude, result.restaurant_location.longitude]);
@@ -131,13 +248,22 @@ const Delivery = () => {
 
   const handleUpdateStatus = async (status) => {
     try {
-      const result = await api.updateDeliveryStatus(activeDelivery.delivery_id, status);
+      if (!activeDelivery) throw new Error("No active delivery");
+      
+      const result = {
+        ...activeDelivery,
+        status: status
+      };
+      
       setActiveDelivery(result);
       
       if (status === 'collected') {
         setMapCenter([result.customer_location.latitude, result.customer_location.longitude]);
       } else if (status === 'delivered') {
         setActiveDelivery(null);
+        setRouteToDestination(null);
+        setEstimatedTime(null);
+        setEstimatedDistance(null);
       }
     } catch (err) {
       console.error(`Error updating status to ${status}:`, err);
@@ -145,16 +271,17 @@ const Delivery = () => {
     }
   };
 
-  if (!currentUser || currentUser.role !== 'rider') {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p>You must be logged in as a rider to access this page.</p>
-        </div>
-      </div>
-    );
-  }
+  // Function to open navigation in Google Maps
+  const openNavigation = (destination) => {
+    if (!destination) return;
+    
+    const { latitude, longitude } = destination;
+    // Create Google Maps URL
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
+    
+    // Open in new tab
+    window.open(mapsUrl, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -182,7 +309,9 @@ const Delivery = () => {
                 />
                 
                 {/* User location marker */}
-                <Marker position={[userLocation.latitude, userLocation.longitude]}>
+                <Marker 
+                  position={[userLocation.latitude, userLocation.longitude]}
+                >
                   <Popup>You are here</Popup>
                 </Marker>
                 
@@ -194,7 +323,6 @@ const Delivery = () => {
                         activeDelivery.restaurant_location.latitude, 
                         activeDelivery.restaurant_location.longitude
                       ]}
-                      icon={restaurantIcon}
                     >
                       <Popup>Restaurant Location</Popup>
                     </Marker>
@@ -204,10 +332,20 @@ const Delivery = () => {
                         activeDelivery.customer_location.latitude, 
                         activeDelivery.customer_location.longitude
                       ]}
-                      icon={customerIcon}
                     >
                       <Popup>Customer Location</Popup>
                     </Marker>
+                    
+                    {/* Route line */}
+                    {routeToDestination && (
+                      <Polyline 
+                        positions={routeToDestination}
+                        color={activeDelivery.status === 'accepted' ? 'blue' : 'green'}
+                        weight={4}
+                        opacity={0.7}
+                        dashArray={activeDelivery.status === 'accepted' ? '10, 10' : ''}
+                      />
+                    )}
                   </>
                 )}
                 
@@ -236,6 +374,18 @@ const Delivery = () => {
                       {activeDelivery.status.charAt(0).toUpperCase() + activeDelivery.status.slice(1)}
                     </span>
                   </p>
+                  
+                  {estimatedDistance && (
+                    <p className="text-gray-600 mt-2">
+                      Distance: {estimatedDistance.toFixed(1)} km
+                    </p>
+                  )}
+                  
+                  {estimatedTime && (
+                    <p className="text-gray-600">
+                      Est. Time: {estimatedTime} min
+                    </p>
+                  )}
                 </div>
                 
                 <div className="border-t border-gray-200 pt-4 mb-4">
@@ -243,10 +393,25 @@ const Delivery = () => {
                     <div>
                       <h3 className="font-medium text-gray-800 mb-2">Restaurant Location</h3>
                       <p className="text-gray-600 mb-4">Navigate to the restaurant to collect the order.</p>
+                      
+                      {/* Navigation button for restaurant */}
+                      <button 
+                        onClick={() => openNavigation(activeDelivery.restaurant_location)}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-3 flex items-center justify-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        Navigate to Restaurant
+                      </button>
+                      
                       <button 
                         onClick={() => handleUpdateStatus('collected')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded"
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded flex items-center justify-center"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                        </svg>
                         Mark as Collected
                       </button>
                     </div>
@@ -254,25 +419,62 @@ const Delivery = () => {
                     <div>
                       <h3 className="font-medium text-gray-800 mb-2">Customer Location</h3>
                       <p className="text-gray-600 mb-4">Deliver the order to the customer.</p>
+                      
+                      {/* Navigation button for customer */}
+                      <button 
+                        onClick={() => openNavigation(activeDelivery.customer_location)}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-3 flex items-center justify-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        Navigate to Customer
+                      </button>
+                      
                       <button 
                         onClick={() => handleUpdateStatus('delivered')}
-                        className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                        className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center justify-center"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                          <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
                         Mark as Delivered
                       </button>
                     </div>
                   ) : null}
+                </div>
+                
+                {/* Delivery details section */}
+                <div className="border-t border-gray-200 pt-4">
+                  <h3 className="font-medium text-gray-800 mb-2">Delivery Details</h3>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-600">Pickup:</span>
+                      <span className="text-gray-800 font-medium">Restaurant</span>
+                    </div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-600">Dropoff:</span>
+                      <span className="text-gray-800 font-medium">Customer</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Payment:</span>
+                      <span className="text-gray-800 font-medium">Completed</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Available Deliveries</h2>
                 {loading ? (
-                  <p className="text-gray-600">Loading deliveries...</p>
-                ) : nearbyDeliveries.length > 0 ? (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : nearbyDeliveries && nearbyDeliveries.length > 0 ? (
                   <div className="space-y-4">
                     {nearbyDeliveries.map((delivery) => (
-                      <div key={delivery.delivery_id} className="border border-gray-200 rounded-lg p-4">
+                      <div key={delivery.delivery_id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <p className="text-gray-600">Order ID: {delivery.order_id}</p>
                         <p className="text-gray-600 mb-2">
                           Distance: {calculateDistance(
@@ -282,17 +484,43 @@ const Delivery = () => {
                             delivery.restaurant_location.longitude
                           ).toFixed(1)} km
                         </p>
+                        
+                        {/* Estimated earnings - this would be calculated based on distance in a real app */}
+                        <p className="text-gray-600 mb-3">
+                          Est. Earnings: Rs. {((calculateDistance(
+                            userLocation.latitude,
+                            userLocation.longitude,
+                            delivery.restaurant_location.latitude,
+                            delivery.restaurant_location.longitude
+                          ) + calculateDistance(
+                            delivery.restaurant_location.latitude,
+                            delivery.restaurant_location.longitude,
+                            delivery.customer_location.latitude,
+                            delivery.customer_location.longitude
+                          ))* 100).toFixed(2)}
+                          
+                        </p>
+                        
                         <button 
                           onClick={() => handleAcceptDelivery(delivery.delivery_id)}
-                          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center justify-center"
                         >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
                           Accept Delivery
                         </button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-600">No deliveries available nearby.</p>
+                  <div className="text-center py-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="text-gray-600">No deliveries available nearby.</p>
+                    <p className="text-gray-500 text-sm mt-2">Check back soon or expand your delivery radius.</p>
+                  </div>
                 )}
               </div>
             )}
