@@ -7,15 +7,14 @@ const NOTIFICATION_SERVICE_API_URL = 'http://localhost:5004/api';
 const DELIVERY_SERVICE_API_URL = 'http://localhost:5005/api';
 
 const fetchApi = async (endpoint, options = {}) => {
-    const headers = {
-        'Content-Type': 'application/json',
-        ...options.headers,
-    };
-
+    const isFormData = options.body instanceof FormData;
     const token = localStorage.getItem('token');
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
+
+    const headers = {
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+    };
 
     const config = {
         ...options,
@@ -44,7 +43,6 @@ const fetchApi = async (endpoint, options = {}) => {
 
             return data;
         } else {
-
             if (!response.ok) {
                 throw new Error('Something went wrong');
             }
@@ -56,8 +54,6 @@ const fetchApi = async (endpoint, options = {}) => {
         throw error;
     }
 };
-
-
 
 export const api = {
     // User

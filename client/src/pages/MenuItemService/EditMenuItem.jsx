@@ -53,6 +53,18 @@ const EditMenuItem = ({ item, onChange, onCancel, onSave }) => {
                     />
                 </div>
 
+                {/* Image input with label */}
+                <div className="mb-3">
+                    <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">Upload New Image</label>
+                    <input
+                        id="image"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => onChange({ ...item, newImage: e.target.files?.[0] })}
+                        className="w-full p-2 border rounded"
+                    />
+                </div>
+
                 {/* Availability checkbox with label */}
                 <div className="flex items-center mb-4">
                     <input

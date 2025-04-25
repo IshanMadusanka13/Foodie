@@ -78,17 +78,31 @@ const MenuItemList = ({ restaurantId }) => {
                 onCancel={() => setEditingItem(null)}
                 onSave={async () => {
                     try {
-                        await api.updateMenuItem(editingItem._id, editingItem);
+                        const formData = new FormData();
+                        formData.append("name", editingItem.name);
+                        formData.append("description", editingItem.description);
+                        formData.append("price", editingItem.price.toString());
+                        formData.append("isAvailable", editingItem.isAvailable.toString());
+
+                        if (editingItem.newImage) {
+                            formData.append("image", editingItem.newImage);  // backend should handle this
+                        }
+
+                        const updated = await api.updateMenuItem(editingItem._id, formData, {
+                            headers: { "Content-Type": "multipart/form-data" }
+                        });
+
+                        // Optimistic update
                         setMenuItems((prev) =>
-                            prev.map((item) => (item._id === editingItem._id ? editingItem : item))
+                            prev.map((item) => (item._id === editingItem._id ? updated.data.item : item))
                         );
                         setFilteredItems((prev) =>
-                            prev.map((item) => (item._id === editingItem._id ? editingItem : item))
+                            prev.map((item) => (item._id === editingItem._id ? updated.data.item : item))
                         );
                         setEditingItem(null);
                     } catch (err) {
-                        console.error('Update failed:', err);
-                        alert('Failed to update item');
+                        console.error("Update failed:", err);
+                        alert("Failed to update item");
                     }
                 }}
             />
