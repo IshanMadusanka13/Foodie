@@ -71,7 +71,7 @@ const MenuItemCategory = ({ restaurantId }) => {
     return (
         <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0">Menu</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-4 mr-4 sm:mb-0">Menu</h2>
                 <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     <input
                         type="text"

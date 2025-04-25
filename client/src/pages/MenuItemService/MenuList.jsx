@@ -86,20 +86,30 @@ const MenuItemList = ({ restaurantId }) => {
 
                         if (editingItem.newImage) {
                             formData.append("image", editingItem.newImage);  
+                        } else if (editingItem.imageUrls?.length > 0) {
+                            // Send existing image URLs if no new image is selected
+                            formData.append("imageUrls", JSON.stringify(editingItem.imageUrls));
                         }
 
                         const updated = await api.updateMenuItem(editingItem._id, formData, {
                             headers: { "Content-Type": "multipart/form-data" }
                         });
 
-                        // Optimistic update
-                        setMenuItems((prev) =>
-                            prev.map((item) => (item._id === editingItem._id ? updated.data.item : item))
-                        );
-                        setFilteredItems((prev) =>
-                            prev.map((item) => (item._id === editingItem._id ? updated.data.item : item))
-                        );
-                        setEditingItem(null);
+                        if (updated?.data?.restaurant) {
+                            setMenuItems((prev) =>
+                                prev.map((item) => (
+                                    item._id === editingItem._id ? updated.data.item : item)
+                                )
+                            );
+                            setFilteredItems((prev) =>
+                                prev.map((item) => (
+                                    item._id === editingItem._id ? updated.data.item : item)
+                                )
+                            );
+                            setEditingItem(null);
+                        } else {
+                            throw new Error("Update failed: No restaurant returned");
+                        }
                     } catch (err) {
                         console.error("Update failed:", err);
                         alert("Failed to update item");

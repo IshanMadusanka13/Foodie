@@ -34,18 +34,37 @@ const updateMenuItem = async (req: Request, res: Response): Promise<void> => {
         const price = parseFloat(req.body.price);
         if (!isNaN(price) && price < 0) {
             res.status(400).json({ status: 'Error', message: 'Invalid price. Price must be ≥ 0.' });
+            return;
         }
 
-        const files = req.files as Express.Multer.File[];
-        const imageUrls = files && Array.isArray(files) && files.length
-            ? await uploadImagesToSupabase(files, 'menu-items')
-            : undefined;
+        const file = req.file as Express.Multer.File | undefined;
+        let imageUrls: string[] = [];
 
-        const item = await MenuItemService.updateMenuItem(req.params.id, {
+        if (file) {
+            imageUrls = await uploadImagesToSupabase([file], 'MenuItems');
+        } else if (req.body.imageUrls) {
+            try {
+                const parsed = JSON.parse(req.body.imageUrls);
+                imageUrls = Array.isArray(parsed) ? parsed : [parsed];
+            } catch {
+                imageUrls = [req.body.imageUrls];
+            }
+        }
+
+        // If no images provided AND imageUrls is still empty, use default
+        if (imageUrls.length === 0) {
+            imageUrls = [
+                'https://waymjbgcpfbxrjxrlizr.supabase.co/storage/v1/object/public/foodie/Restaurants/default_restaurant.png',
+            ];
+        }
+
+        const updateData: any = {
             ...req.body,
-            ...(imageUrls && { imageUrls }),
-        });
+            ...(imageUrls.length > 0 && { imageUrls }),
+        };
 
+        const item = await MenuItemService.updateMenuItem(req.params.id, updateData);
+        console.log("Updated Menu Item:", item);
         res.status(200).json({ status: 'Success', data: { item } });
     } catch (error: any) {
         res.status(error.message?.includes('not found') ? 404 : 400).json({ status: 'Error', message: error.message });

@@ -9,7 +9,7 @@ router.post(
     '/',
     //authenticate,
     //verifyRole(['restaurant_admin']),
-    upload.array('images'),
+    upload.single('image'),
     controller.createMenuItem
 );
 
@@ -27,7 +27,7 @@ router.put(
     '/:id',
     //authenticate,
     //verifyRole(['restaurant_admin']),
-    upload.array('images'),
+    upload.single('image'),
     controller.updateMenuItem
 );
 
@@ -41,14 +41,6 @@ router.delete(
 router.get(
     '/restaurant/:restaurantId/paginated',
     controller.getPaginatedMenuItems
-);
-
-router.post(
-    '/upload-multiple',
-    //authenticate,
-    //verifyRole(['restaurant_admin']),
-    upload.array('images'),
-    controller.uploadMultipleImages
 );
 
 router.get(

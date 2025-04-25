@@ -7,11 +7,11 @@ import MenuItemCategory from '../MenuItemService/MenuItemCategory';
 
 const RestaurantProfile = () => {
     const { id } = useParams();
-    console.log("Restaurant ID from URL:", id); // ✅ Add this line
+    console.log("Restaurant ID from URL:", id); 
     const [restaurant, setRestaurant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeSection, setActiveSection] = useState('overview'); // Track active section
+    const [activeSection, setActiveSection] = useState('menu'); // Track active section
 
     useEffect(() => {
         const fetchRestaurant = async () => {
@@ -91,12 +91,6 @@ const RestaurantProfile = () => {
                 ))}
                 <ul>
                     <li
-                        onClick={() => setActiveSection('overview')}
-                        className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'overview' ? 'bg-gray-600' : ''}`}
-                    >
-                        Overview
-                    </li>
-                    <li
                         onClick={() => setActiveSection('menu')}
                         className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'menu' ? 'bg-gray-600' : ''}`}
                     >
@@ -107,25 +101,7 @@ const RestaurantProfile = () => {
                         className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'categories' ? 'bg-gray-600' : ''}`}
                     >
                         Category
-                    </li>
-                    <li
-                        onClick={() => setActiveSection('photos')}
-                        className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'photos' ? 'bg-gray-600' : ''}`}
-                    >
-                        Photos
-                    </li>
-                    <li
-                        onClick={() => setActiveSection('updates')}
-                        className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'updates' ? 'bg-gray-600' : ''}`}
-                    >
-                        Updates
-                    </li>
-                    <li
-                        onClick={() => setActiveSection('about')}
-                        className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'about' ? 'bg-gray-600' : ''}`}
-                    >
-                        About
-                    </li>
+                    </li>                    
                 </ul>
             </div>
 

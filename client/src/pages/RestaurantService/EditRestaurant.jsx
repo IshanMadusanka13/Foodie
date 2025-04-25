@@ -4,9 +4,9 @@ const EditRestaurant = ({ restaurant, onChange, onCancel, onSave }) => {
     if (!restaurant) return null;
 
     return (
-        <div className="text-black fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                <h2 className="text-2xl font-semibold mb-4">Edit Restaurant</h2>
+        <div className="text-black fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+                <h2 className="text-xl sm:text-2xl font-semibold mb-4">Edit Restaurant</h2>
 
                 {/* Name input with label */}
                 <div className="mb-3">
