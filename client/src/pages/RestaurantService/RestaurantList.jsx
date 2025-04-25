@@ -55,34 +55,38 @@ const RestaurantList = () => {
             {loading ? (
                 <div className="text-xl animate-pulse">Loading restaurants...</div>
             ) : (
-                    <ul className="space-y-4">
-                        {restaurants.map((restaurant) => (
-                            <li key={restaurant._id} className="flex justify-between items-center bg-black bg-opacity-40 p-4 rounded-lg shadow">
-                                <Link
-                                    to={`/restaurant/${restaurant._id}`}
-                                    className="flex items-center space-x-4"
-                                >
-                                    {restaurant.imageUrls?.length > 0 && (
-                                        <img
-                                            src={restaurant.imageUrls[0]}
-                                            alt={restaurant.name}
-                                            className="w-20 h-20 object-cover rounded-lg border border-white"
-                                        />
-                                    )}
-                                    <span className="text-xl font-semibold text-white">{restaurant.name}</span>
-                                </Link>
+                <ul className="space-y-4">
+                    {restaurants.map((restaurant) => (
+                        <li
+                            key={restaurant._id}
+                            className={`flex justify-between items-center p-4 rounded-lg shadow ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'
+                                } bg-opacity-40 border border-black`} 
+                        >
+                            <Link
+                                to={`/restaurant/${restaurant._id}`}
+                                className="flex items-center space-x-4"
+                            >
+                                {restaurant.imageUrls?.length > 0 && (
+                                    <img
+                                        src={restaurant.imageUrls[0]}
+                                        alt={restaurant.name}
+                                        className="w-20 h-20 object-cover rounded-lg border border-white"
+                                    />
+                                )}
+                                <span className="text-xl font-semibold text-white">{restaurant.name}</span>
+                            </Link>
 
-                                {/* Delete button */}
-                                <button
-                                    onClick={() => handleDeleteRestaurant(restaurant._id)}
-                                    className="text-red-500 hover:text-red-700"
-                                    title="Delete restaurant"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                            {/* Delete button */}
+                            <button
+                                onClick={() => handleDeleteRestaurant(restaurant._id)}
+                                className="text-red-500 hover:text-red-700"
+                                title="Delete restaurant"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
             )}
         </div>
     );

@@ -28,13 +28,21 @@ const RestaurantProfile = () => {
             }
         };
 
+        // Initial fetch
         fetchRestaurant();
+
+        // Set an interval to refresh the restaurant's status every minute (60,000 ms)
+        const intervalId = setInterval(fetchRestaurant, 60000);
+
+        // Cleanup the interval on component unmount
+        return () => clearInterval(intervalId);
+
     }, [id]);
 
     if (loading) return <div className="p-8 text-lg">Loading...</div>;
     if (error) return <div className="p-8 text-red-500">{error}</div>;
 
-    const renderSectionContent = () => {        
+    const renderSectionContent = () => {
         switch (activeSection) {
             case 'menu':
                 return <MenuItemList restaurantId={id} />;
@@ -57,18 +65,22 @@ const RestaurantProfile = () => {
     };
 
     const backgroundStyle = {
-            backgroundImage: `url(${backgroundImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            minHeight: '100vh',
-            color: 'white',
-        };
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        color: 'white',
+    };
 
     return (
         <div style={backgroundStyle} className="flex">
             {/* Left Sidebar */}
             <div className="w-64 p-4 bg-gray-800 text-white">
-                <h1 className="text-3xl font-bold mb-8 mt-4 ml-2">{restaurant.name}</h1>
+                <h1 className="text-3xl font-bold mb-4 mt-4 ml-2">{restaurant.name}</h1>
+                <p className={`mb-4 p-2 text-white text-center text-sm text-gray-600 ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'} bg-opacity-40 rounded-lg`}>
+                    {restaurant.isOpen ? 'Open now' : 'Closed'} — {restaurant.openTime} to {restaurant.closeTime}
+                </p>
+
                 {restaurant.imageUrls?.map((url, index) => (
                     <img
                         key={index}
@@ -118,9 +130,9 @@ const RestaurantProfile = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 p-8">               
-                {renderSectionContent()} 
-                
+            <div className="flex-1 p-8">
+                {renderSectionContent()}
+
             </div>
         </div>
     );
