@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './index.css'
 
 import 'leaflet/dist/leaflet.css';
 import { Toaster } from 'react-hot-toast';
@@ -13,6 +14,11 @@ import JoinUs_Restaurant from './pages/RestaurantService/JoinUs_RestaurantMain';
 import RestaurantList from './pages/RestaurantService/RestaurantList';
 import RestaurantProfile from './pages/RestaurantService/RestaurantProfile ';
 import CreateRestaurant from './pages/RestaurantService/CreateRestaurant';
+import MenuItemCategory from './pages/MenuItemService/MenuItemCategory';
+import CustomerDashboard from './pages/CustomerDashboard';
+
+import Cart from './pages/Cart';
+import Favorites from './pages/Favourites';
 
 function App() {
 
@@ -29,6 +35,10 @@ function App() {
       <Route path="/restaurant" element={<RestaurantList />} />
       <Route path="/restaurant/:id" element={<RestaurantProfile />} />
       <Route path="/createRestaurant" element={<CreateRestaurant />} />
+      <Route path="/menuItemCategory" element={<MenuItemCategory />} />
+      <Route path="/customerDashboard" element={<CustomerDashboard />} />
+      <Route path="/cart" element={<Cart/>} />
+      <Route path="/favorites" element={<Favorites/>} />
 
     </Routes>
   )

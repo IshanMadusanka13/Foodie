@@ -38,7 +38,7 @@ const HeroSection = () => {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                             <Link
-                                to="#"
+                                to="/customerDashboard"
                                 className="px-8 py-3 text-lg font-semibold rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-md"
                             >
                                 Order Now
@@ -48,12 +48,6 @@ const HeroSection = () => {
                                 className="px-8 py-3 text-lg font-semibold rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/20"
                             >
                                 How It Works
-                            </Link>
-                            <Link
-                                to="/restaurant"
-                                className="px-8 py-3 text-lg font-semibold rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/20"
-                            >
-                                Restaurants
                             </Link>
                         </div>
                     </div>

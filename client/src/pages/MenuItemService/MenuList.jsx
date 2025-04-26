@@ -19,7 +19,7 @@ const MenuItemList = ({ restaurantId }) => {
             try {
                 const res = await api.getMenuItemsByRestaurant(restaurantId);
                 setMenuItems(res?.data?.items || []);
-                setFilteredItems(res?.data?.items || []);  // Initialize filtered items
+                setFilteredItems(res?.data?.items || []);  
             } catch (err) {
                 console.error(err);
                 setError('Failed to load menu items');

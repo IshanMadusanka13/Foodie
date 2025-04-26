@@ -77,10 +77,7 @@ const RestaurantProfile = () => {
             {/* Left Sidebar */}
             <div className="w-64 p-4 bg-gray-800 text-white">
                 <h1 className="text-3xl font-bold mb-4 mt-4 ml-2">{restaurant.name}</h1>
-                <p className={`mb-4 p-2 text-white text-center text-sm text-gray-600 ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'} bg-opacity-40 rounded-lg`}>
-                    {restaurant.isOpen ? 'Open now' : 'Closed'} — {restaurant.openTime} to {restaurant.closeTime}
-                </p>
-
+                
                 {restaurant.imageUrls?.map((url, index) => (
                     <img
                         key={index}
@@ -89,24 +86,30 @@ const RestaurantProfile = () => {
                         className="w-full max-w-md mb-4 rounded-lg shadow mx-auto"
                     />
                 ))}
+
+                <p className={`mb-4 p-2 text-white text-center text-sm text-gray-600 ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'} bg-opacity-40 rounded-lg`}>
+                    {restaurant.isOpen ? 'Open now' : 'Closed'} — {restaurant.openTime} to {restaurant.closeTime}
+                </p>
+                
                 <ul>
                     <li
                         onClick={() => setActiveSection('menu')}
                         className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'menu' ? 'bg-gray-600' : ''}`}
                     >
-                        Menu
+                        Menu (for admin)
                     </li>
                     <li
                         onClick={() => setActiveSection('categories')}
                         className={`cursor-pointer p-4 rounded mb-2 ${activeSection === 'categories' ? 'bg-gray-600' : ''}`}
                     >
-                        Category
+                        Category (for customer)
                     </li>                    
                 </ul>
             </div>
 
             {/* Main Content Area */}
             <div className="flex-1 p-8">
+            
                 {renderSectionContent()}
 
             </div>
