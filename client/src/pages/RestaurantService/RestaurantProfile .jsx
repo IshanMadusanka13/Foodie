@@ -11,7 +11,7 @@ const RestaurantProfile = () => {
     const [restaurant, setRestaurant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeSection, setActiveSection] = useState('menu');
+    const [activeSection, setActiveSection] = useState('categories');
     const [menuItems, setMenuItems] = useState([]);
 
     // Cart state

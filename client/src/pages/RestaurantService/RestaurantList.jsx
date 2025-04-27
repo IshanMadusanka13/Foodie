@@ -141,27 +141,7 @@ const RestaurantList = () => {
                                     />
                                 )}
                                 <span className="text-xl font-semibold text-white">{restaurant.name}</span>
-                            </Link>
-
-                            <div className="flex items-center space-x-3">
-                                {/* Edit button */}
-                                <button
-                                    onClick={() => setEditingRestaurant(restaurant)}
-                                    className="text-blue-400 hover:text-blue-600"
-                                    title="Edit restaurant"
-                                >
-                                    <Pencil className="w-5 h-5" />
-                                </button>
-
-                                {/* Delete button */}
-                                <button
-                                    onClick={() => handleDeleteRestaurant(restaurant._id)}
-                                    className="text-red-500 hover:text-red-700"
-                                    title="Delete restaurant"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
-                            </div>
+                            </Link>    
                         </li>
                     ))}
                 </ul>

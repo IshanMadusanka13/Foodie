@@ -10,13 +10,19 @@ import Register from './pages/userService/register';
 import Home from './pages/Home';
 import Profile from './pages/userService/profile';
 
-import JoinUs_Restaurant from './pages/RestaurantService/JoinUs_RestaurantMain';
+//Restaurant-customer
+
+
+import JoinUs from './pages/RestaurantService/JoinUs';
 import RestaurantList from './pages/RestaurantService/RestaurantList';
 import RestaurantProfile from './pages/RestaurantService/RestaurantProfile ';
 import CreateRestaurant from './pages/RestaurantService/CreateRestaurant';
 import MenuItemCategory from './pages/MenuItemService/MenuItemCategory';
 import CustomerDashboard from './pages/CustomerDashboard';
 import CustomerMenuList from './pages/MenuItemService/CustomerMenuList';
+import ManageRestaurants from './pages/RestaurantService/ManageRestaurants';
+import AdminDashboard from './pages/adminDashboard';
+import RestaurantAdminDashboard from './pages/RestaurantAdminDashboard';
 
 import Cart from './pages/Cart';
 
@@ -31,7 +37,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/profile" element={<Profile />} />
 
-      <Route path="/joinUs" element={<JoinUs_Restaurant />} />
+      <Route path="/JoinUs" element={<JoinUs />} />
       <Route path="/restaurant" element={<RestaurantList />} />
       <Route path="/restaurant/:id" element={<RestaurantProfile />} />
       <Route path="/createRestaurant" element={<CreateRestaurant />} />
@@ -39,6 +45,9 @@ function App() {
       <Route path="/customerDashboard" element={<CustomerDashboard />} />
       <Route path="/cart" element={<Cart/>} />
       <Route path="/customerMenuList" element={<CustomerMenuList />} />
+      <Route path="/manageRestaurants" element={<ManageRestaurants />} />
+      <Route path="/adminDashboard" element={<AdminDashboard />} />
+      <Route path="/restaurantAdminDashboard" element={<RestaurantAdminDashboard />} />
 
     </Routes>
   )

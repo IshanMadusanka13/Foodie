@@ -7,9 +7,11 @@ import {
     UserIcon,
     CogIcon
 } from '@heroicons/react/solid';
-import {  FaUtensils } from "react-icons/fa";
+import { FaUtensils, FaHandshake } from "react-icons/fa";
 import RestaurantList from './RestaurantService/RestaurantList';
 import CustomerMenuList from './MenuItemService/CustomerMenuList';
+import JoinUs from './RestaurantService/JoinUs';
+import CreateRestaurant from './RestaurantService/CreateRestaurant';
 
 const CustomerDashboard = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -41,10 +43,16 @@ const CustomerDashboard = () => {
                         {/* Add your profile content here */}
                     </div>
                 );
-            case 'settings':
+            case 'join_Us':
                 return (
                     <div className="p-6">
-                        {/* Add your Settings content here */}
+                        <JoinUs setActiveView={setActiveView} />
+                    </div>
+                );
+            case 'createRestaurant':
+                return (
+                    <div className="p-6">
+                        <CreateRestaurant setActiveView={setActiveView} />
                     </div>
                 );
             default:
@@ -111,11 +119,11 @@ const CustomerDashboard = () => {
                         </li>
                         <li>
                             <button
-                                onClick={() => setActiveView('settings')}
-                                className={`flex items-center p-3 rounded-lg w-full text-left ${activeView === 'settings' ? 'bg-gray-100 text-primary-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                                onClick={() => setActiveView('join_Us')}
+                                className={`flex items-center p-3 rounded-lg w-full text-left ${activeView === 'join_Us' ? 'bg-gray-100 text-primary-600' : 'text-gray-700 hover:bg-gray-100'}`}
                             >
-                                <CogIcon className={`h-5 w-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                                {!sidebarCollapsed && <span>Settings</span>}
+                                <FaHandshake className={`h-5 w-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
+                                {!sidebarCollapsed && <span>Join Us</span>}
                             </button>
                         </li>
                     </ul>

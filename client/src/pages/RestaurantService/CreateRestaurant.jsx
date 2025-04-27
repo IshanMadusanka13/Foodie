@@ -44,7 +44,7 @@ LocationPicker.propTypes = {
 };
 
 // Main Component
-const CreateRestaurant = () => {
+const CreateRestaurant = ({ setActiveView }) => {
     const [form, setForm] = useState({
         name: '',
         address: '',
@@ -195,9 +195,14 @@ const CreateRestaurant = () => {
     };
 
     return (
-        <div style={backgroundStyle1} className="py-10" >
+        <div className="bg-white p-6 rounded-lg shadow-md" >
+            <button
+                onClick={() => setActiveView('join_Us')}
+                className="mb-4 text-primary-600 hover:text-primary-800"
+            >
+                ← Back 
+            </button>
             <h2 className="text-black text-3xl mb-4 font-semibold text-center">Create Your Restaurant</h2>
-            < div style={backgroundStyle} className="text-black max-w-3xl mx-auto p-8 bg-white shadow-md rounded-lg">
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Owner ID */}
                     <div>
@@ -355,7 +360,6 @@ const CreateRestaurant = () => {
                         </button>
                     </div>
                 </form>
-            </div >
 
             <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} as={Fragment}>
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -402,8 +406,7 @@ const CreateRestaurant = () => {
 };
 
 CreateRestaurant.propTypes = {
-    step: PropTypes.number.isRequired,
-    setStep: PropTypes.func.isRequired,
+    setActiveView: PropTypes.func.isRequired,  
 };
 
 export default CreateRestaurant;

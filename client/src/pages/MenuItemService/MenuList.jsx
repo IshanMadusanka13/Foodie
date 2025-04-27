@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';  
 import { api } from '../../utils/fetchapi';
 import { SearchIcon } from '@heroicons/react/solid';  
-import { Pencil, Trash2 } from 'lucide-react';
 import EditMenuItem from './EditMenuItem'; 
 
 const MenuItemList = ({ restaurantId }) => {
