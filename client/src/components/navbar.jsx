@@ -21,6 +21,9 @@ const NavBar = () => {
                 {/* Logo */}
                 <a className="text-3xl font-bold leading-none" href="#">
                     {/* Logo SVG */}
+                    <div className="font-bold text-primary-600 text-3xl text-black">
+                        <h1>Foodie</h1>
+                    </div>   
                 </a>
 
                 {!currentUser ? (
@@ -41,7 +44,7 @@ const NavBar = () => {
                         </div>
 
                         <div className="lg:hidden">
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2">                           
                                 <a
                                     className="py-2 px-4 bg-primary-500 hover:bg-primary-600 text-sm text-white font-bold rounded-xl transition duration-200"
                                     href="/login"
