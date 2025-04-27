@@ -2,10 +2,16 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { api } from '../../utils/fetchapi';
 import { SearchIcon } from '@heroicons/react/solid';
-import { FaShoppingCart } from "react-icons/fa";
-import Cart from '../Cart';
 
-const MenuItemCategory = ({ restaurantId }) => {
+const MenuItemCategory = ({
+    restaurantId,
+    quantities,
+    onQuantityChange,
+    cart,
+    setCart,
+    showCart,
+    setShowCart
+}) => {
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -13,10 +19,8 @@ const MenuItemCategory = ({ restaurantId }) => {
     const [filteredItems, setFilteredItems] = useState([]);
     const [notFoundMessage, setNotFoundMessage] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
-    const [quantities, setQuantities] = useState({});
-    const [cart, setCart] = useState([]);
-    const [showCart, setShowCart] = useState(false);
     const [restaurantMap, setRestaurantMap] = useState({});
+    const [currentRestaurantName, setCurrentRestaurantName] = useState('');
 
     const categories = [
         { name: 'Appetizers', icon: '🥟' },
@@ -30,64 +34,25 @@ const MenuItemCategory = ({ restaurantId }) => {
         { name: 'Desserts', icon: '🍰' },
     ];
 
-    const handleQuantityChange = (itemId, change) => {
-        setQuantities((prev) => {
-            const newQuantities = { ...prev };
-            const newQuantity = (newQuantities[itemId] || 0) + change;
-            newQuantities[itemId] = Math.max(newQuantity, 0);
-
-            // Update the cart
-            setCart((prevCart) => {
-                const item = menuItems.find((item) => item._id === itemId);
-                if (!item) return prevCart;
-
-                if (newQuantity === 0) {
-                    return prevCart.filter((cartItem) => cartItem.itemId !== itemId);
-                }
-
-                const existingItemIndex = prevCart.findIndex((cartItem) => cartItem.itemId === itemId);
-
-                if (existingItemIndex >= 0) {
-                    const updatedCart = [...prevCart];
-                    updatedCart[existingItemIndex] = {
-                        ...updatedCart[existingItemIndex],
-                        quantity: newQuantity,
-                    };
-                    return updatedCart;
-                } else {
-                    return [
-                        ...prevCart,
-                        {
-                            itemId,
-                            name: item.name,
-                            price: item.price,
-                            quantity: newQuantity,
-                            restaurantName: restaurantMap[item.restaurantId?._id] || 'Unknown Restaurant',
-                        },
-                    ];
-                }
-            });
-
-            return newQuantities;
-        });
-    };
-
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [menuRes, restaurantRes] = await Promise.all([
+                const [menuRes, restaurantRes, currentRestaurantRes] = await Promise.all([
                     api.getMenuItemsByRestaurant(restaurantId),
-                    api.getAllRestaurants()
+                    api.getAllRestaurants(),
+                    api.getRestaurantById(restaurantId)
                 ]);
 
                 const menuData = menuRes?.data?.items || [];
                 const restaurantData = restaurantRes?.data?.restaurants || [];
+                const currentRestaurant = currentRestaurantRes?.data?.restaurant || {};
 
                 const map = {};
                 restaurantData.forEach((r) => {
                     map[r._id] = r.name;
                 });
 
+                setCurrentRestaurantName(currentRestaurant.name || '');
                 setRestaurantMap(map);
                 setMenuItems(menuData);
                 setFilteredItems(menuData);
@@ -109,11 +74,14 @@ const MenuItemCategory = ({ restaurantId }) => {
             );
             setFilteredItems(filtered);
             setNotFoundMessage(filtered.length === 0 ? 'No matching menu items found!' : '');
+        } else if (selectedCategory) {
+            const filtered = menuItems.filter(item => item.category === selectedCategory);
+            setFilteredItems(filtered);
         } else {
             setFilteredItems(menuItems);
             setNotFoundMessage('');
         }
-    }, [searchId, menuItems]);
+    }, [searchId, menuItems, selectedCategory]);
 
     if (loading) return <div>Loading menu items...</div>;
     if (error) return <div className="text-red-500">{error}</div>;
@@ -222,7 +190,7 @@ const MenuItemCategory = ({ restaurantId }) => {
                             {quantities[item._id] > 0 ? (
                                 <div className="bg-gray-200 text-black flex items-center border border-gray-300 rounded-lg">
                                     <button
-                                        onClick={() => handleQuantityChange(item._id, -1)}
+                                        onClick={() => onQuantityChange(item._id, -1)}
                                         className="px-3 py-1 border-r border-gray-300 text-black"
                                     >
                                         -
@@ -231,7 +199,7 @@ const MenuItemCategory = ({ restaurantId }) => {
                                         {quantities[item._id]}
                                     </span>
                                     <button
-                                        onClick={() => handleQuantityChange(item._id, 1)}
+                                        onClick={() => onQuantityChange(item._id, 1)}
                                         className="px-3 py-1 text-black"
                                     >
                                         +
@@ -239,7 +207,7 @@ const MenuItemCategory = ({ restaurantId }) => {
                                 </div>
                             ) : (
                                 <button
-                                    onClick={() => handleQuantityChange(item._id, 1)}
+                                    onClick={() => onQuantityChange(item._id, 1)}
                                     className="bg-primary-500 text-white px-4 py-2 rounded-full hover:bg-primary-700 text-sm font-semibold"
                                 >
                                     Add +
@@ -249,43 +217,18 @@ const MenuItemCategory = ({ restaurantId }) => {
                     </div>
                 ))}
             </div>
-
-            {/* Cart Icon */}
-            <div
-                className="fixed bottom-4 right-4 bg-primary-500 text-white p-3 rounded-full shadow-lg cursor-pointer"
-                onClick={() => setShowCart(!showCart)}
-            >
-                <FaShoppingCart className="w-6 h-6" />
-                {cart.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                        {cart.reduce((total, item) => total + item.quantity, 0)}
-                    </span>
-                )}
-            </div>
-
-            {/* Cart Modal */}
-            {showCart && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-primary-600 text-xl font-bold">Cart</h2>
-                            <button
-                                onClick={() => setShowCart(false)}
-                                className="text-gray-500 hover:text-gray-700"
-                            >
-                                &times;
-                            </button>
-                        </div>
-                        <Cart cartItems={cart} />
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
 
 MenuItemCategory.propTypes = {
     restaurantId: PropTypes.string.isRequired,
+    quantities: PropTypes.object.isRequired,
+    onQuantityChange: PropTypes.func.isRequired,
+    cart: PropTypes.array.isRequired,
+    setCart: PropTypes.func.isRequired,
+    showCart: PropTypes.bool.isRequired,
+    setShowCart: PropTypes.func.isRequired,
 };
 
 export default MenuItemCategory;

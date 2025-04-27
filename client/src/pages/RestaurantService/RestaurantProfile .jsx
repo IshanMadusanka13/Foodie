@@ -4,6 +4,7 @@ import { api } from '../../utils/fetchapi';
 import MenuItemList from '../../pages/MenuItemService/MenuList';
 import MenuItemCategory from '../MenuItemService/MenuItemCategory';
 import { FaShoppingCart } from "react-icons/fa";
+import Cart from '../Cart';
 
 const RestaurantProfile = () => {
     const { id } = useParams();
@@ -11,6 +12,7 @@ const RestaurantProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeSection, setActiveSection] = useState('menu');
+    const [menuItems, setMenuItems] = useState([]);
 
     // Cart state
     const [quantities, setQuantities] = useState({});
@@ -49,6 +51,7 @@ const RestaurantProfile = () => {
                             name: item.name,
                             price: item.price,
                             quantity: newQuantity,
+                            restaurantId: id,
                             restaurantName: restaurant?.name || 'Unknown Restaurant',
                         },
                     ];
@@ -63,11 +66,13 @@ const RestaurantProfile = () => {
         const fetchRestaurant = async () => {
             try {
                 const res = await api.getRestaurantById(id);
-                console.log("Fetched restaurant data:", res?.data);
                 setRestaurant(res?.data?.restaurant);
+
+                // Fetch menu items for this restaurant
+                const menuRes = await api.getMenuItemsByRestaurant(id);
+                setMenuItems(menuRes?.data?.items || []);
             } catch (err) {
                 console.error(err);
-                console.error("API error:", err);
                 setError('Failed to load restaurant profile');
             } finally {
                 setLoading(false);
@@ -81,25 +86,22 @@ const RestaurantProfile = () => {
 
     if (loading) return <div className="p-8 text-lg">Loading...</div>;
     if (error) return <div className="p-8 text-red-500">{error}</div>;
+    if (!restaurant) return <div className="p-8">Restaurant not found</div>;
 
     const renderSectionContent = () => {
         switch (activeSection) {
-            case 'menu':
+            case 'categories':
                 return (
-                    <MenuItemList
+                    <MenuItemCategory
                         restaurantId={id}
                         quantities={quantities}
                         onQuantityChange={handleQuantityChange}
+                        cart={cart}
+                        setCart={setCart}
+                        showCart={showCart}
+                        setShowCart={setShowCart}
                     />
-                );            
-            case 'categories':
-                return <MenuItemCategory restaurantId={id} />;
-            case 'photos':
-                return <div>Photos content goes here</div>;
-            case 'updates':
-                return <div>Updates content goes here</div>;
-            case 'about':
-                return <div>About content goes here</div>;
+                );
             default:
                 return (
                     <div>
@@ -112,69 +114,45 @@ const RestaurantProfile = () => {
 
     return (
         <div className="bg-white">
-            {/* Restaurant Header Section */}
-            <div className="text-white p-6">
-                <div className="max-w-6xl mx-auto">                    
-                    <div className="flex flex-col md:flex-row items-center">
-                        <div className="flex justify-between gap-10 items-center">
-                            <h1 className="text-primary-600 text-4xl font-bold mb-2 items-center">{restaurant.name}</h1>
-                            {/* Restaurant Info */}
-                            <div className="md:w-2/3">
-                                <p className={`inline-block px-3 py-1 rounded-full text-md mb-4 border ${  // Added 'border' class
-                                    restaurant.isOpen
-                                        ? 'border-green-500 text-green-500'
-                                        : 'border-red-500 text-red-500'
-                                    }`}>
-                                    {restaurant.isOpen ? 'Open now' : 'Closed'} — {restaurant.openTime} to {restaurant.closeTime}
-                                </p>
-                                <p className="text-gray-300">{restaurant.description}</p>
-                            </div>
-                        </div>
-                        {/* Restaurant Images */}
-                        <div className="flex space-x-4 overflow-x-auto pb-2 md:w-1/3">
-                            {restaurant.imageUrls?.map((url, index) => (
-                                <img
-                                    key={index}
-                                    src={url}
-                                    alt={`Restaurant ${index}`}
-                                    className="min-w-[500px] min-h-[300px] w-48 h-48 object-cover rounded-lg shadow"
-                                />
-                            ))}
-                        </div>
+            <div className="flex flex-col items-center">
+                {/* Restaurant Header Section */}
+                <div className="flex justify-between gap-6">
+                    <h1 className="text-primary-600 text-4xl font-bold mb-2">{restaurant.name}</h1>
+                    {/* Restaurant Info */}
+                    <div>
+                        <p className={`px-3 py-1 rounded-full text-md mb-4 border ${restaurant.isOpen
+                            ? 'border-green-500 text-green-500'
+                            : 'border-red-500 text-red-500'
+                            }`}>
+                            {restaurant.isOpen ? 'Open now' : 'Closed'} — {restaurant.openTime} to {restaurant.closeTime}
+                        </p>
                     </div>
+                </div>
+                {/* Restaurant Images */}
+                <div className="flex space-x-4 overflow-x-auto pb-2">
+                    {restaurant.imageUrls?.map((url, index) => (
+                        <img
+                            key={index}
+                            src={url}
+                            alt={`Restaurant ${index}`}
+                            className="min-w-[500px] min-h-[300px] w-48 h-48 object-cover rounded-lg shadow"
+                        />
+                    ))}
                 </div>
             </div>
 
             {/* Navigation Tabs */}
             <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 max-w-6xl mx-auto px-6">
-                    <button
-                        onClick={() => setActiveSection('menu')}
-                        className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'menu'
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                    >
-                        Menu
-                    </button>
+                <nav className="flex space-x-8 max-w-6xl mx-auto px-6">                    
                     <button
                         onClick={() => setActiveSection('categories')}
                         className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'categories'
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         Categories
-                    </button>
-                    <button
-                        onClick={() => setActiveSection('photos')}
-                        className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'photos'
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                    >
-                        Photos
-                    </button>
+                    </button>                    
                 </nav>
             </div>
 
@@ -213,7 +191,6 @@ const RestaurantProfile = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };
