@@ -144,23 +144,7 @@ const MenuItemList = ({ restaurantId }) => {
                         key={item._id}
                         className="bg-white shadow-md rounded-lg p-4 border border-gray-200"
                     >
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-xl text-black font-semibold">{item.name}</h3>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setEditingItem(item)} // Open edit modal
-                                    className="text-blue-600 hover:text-blue-800"
-                                >
-                                    <Pencil className="w-5 h-5 text-blue-600 hover:text-blue-800" />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(item._id)}
-                                    className="text-red-600 hover:text-red-800 flex items-center gap-1"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
+                        <h3 className="text-xl text-black font-semibold mb-4">{item.name}</h3>                            
                         <p className="text-gray-600">{item.description}</p>
                         <p className="text-green-600 font-bold mt-2">${item.price.toFixed(2)}</p>
                         {item.imageUrls?.length > 0 && (

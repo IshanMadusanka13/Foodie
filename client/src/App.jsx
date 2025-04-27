@@ -16,9 +16,9 @@ import RestaurantProfile from './pages/RestaurantService/RestaurantProfile ';
 import CreateRestaurant from './pages/RestaurantService/CreateRestaurant';
 import MenuItemCategory from './pages/MenuItemService/MenuItemCategory';
 import CustomerDashboard from './pages/CustomerDashboard';
+import CustomerMenuList from './pages/MenuItemService/CustomerMenuList';
 
 import Cart from './pages/Cart';
-import Favorites from './pages/Favourites';
 
 function App() {
 
@@ -38,7 +38,7 @@ function App() {
       <Route path="/menuItemCategory" element={<MenuItemCategory />} />
       <Route path="/customerDashboard" element={<CustomerDashboard />} />
       <Route path="/cart" element={<Cart/>} />
-      <Route path="/favorites" element={<Favorites/>} />
+      <Route path="/customerMenuList" element={<CustomerMenuList />} />
 
     </Routes>
   )

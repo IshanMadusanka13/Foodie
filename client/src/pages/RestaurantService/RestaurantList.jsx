@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../utils/fetchapi';
-import backgroundImage from '../../assets/hero.jpg';
 import { Trash2, Pencil } from 'lucide-react';
 import EditRestaurant from './EditRestaurant';
 
