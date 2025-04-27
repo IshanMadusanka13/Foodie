@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../../utils/fetchapi';
-import MenuItemCategory from '../MenuItemService/MenuItemCategory';
+import MenuItemList from '../MenuItemService/MenuItemList';
 import { FaShoppingCart } from "react-icons/fa";
 import Cart from '../Cart';
 
-const RestaurantProfile = () => {
+const RestaurantProfileRA = () => {
     const { id } = useParams();
     const [restaurant, setRestaurant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeSection, setActiveSection] = useState('categories');
+    const [activeSection, setActiveSection] = useState('menu');
     const [menuItems, setMenuItems] = useState([]);
 
     // Cart state
@@ -89,9 +89,9 @@ const RestaurantProfile = () => {
 
     const renderSectionContent = () => {
         switch (activeSection) {
-            case 'categories':
+            case 'menu':
                 return (
-                    <MenuItemCategory
+                    <MenuItemList
                         restaurantId={id}
                         quantities={quantities}
                         onQuantityChange={handleQuantityChange}
@@ -144,13 +144,13 @@ const RestaurantProfile = () => {
             <div className="border-b border-gray-200">
                 <nav className="flex space-x-8 max-w-6xl mx-auto px-6">                    
                     <button
-                        onClick={() => setActiveSection('categories')}
-                        className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'categories'
+                        onClick={() => setActiveSection('menu')}
+                        className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'menu'
                             ? 'border-primary-500 text-primary-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
-                        Categories
+                        Menu
                     </button>                    
                 </nav>
             </div>
@@ -194,4 +194,4 @@ const RestaurantProfile = () => {
     );
 };
 
-export default RestaurantProfile;
+export default RestaurantProfileRA;

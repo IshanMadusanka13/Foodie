@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../utils/fetchapi';
-import EditRestaurant from './EditRestaurant';
 
-const RestaurantList = () => {
+const RestaurantListRA = () => {
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [editingRestaurant, setEditingRestaurant] = useState(null);
     const [filteredRestaurants, setFilteredRestaurants] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -41,55 +39,6 @@ const RestaurantList = () => {
 
     return (
         <div>
-            <EditRestaurant 
-                restaurant={editingRestaurant}
-                onChange={setEditingRestaurant}
-                onCancel={() => setEditingRestaurant(null)}
-                onSave={async () => {
-                    try {
-                        const formData = new FormData();
-                        formData.append("name", editingRestaurant.name);
-                        formData.append("email", editingRestaurant.email);
-                        formData.append("address", editingRestaurant.address);
-                        formData.append("latitude", parseFloat(editingRestaurant.latitude) || 0);
-                        formData.append("longitude", parseFloat(editingRestaurant.longitude) || 0);
-                        formData.append("openTime", editingRestaurant.openTime);
-                        formData.append("closeTime", editingRestaurant.closeTime);
-                        formData.append("ownerId", editingRestaurant.ownerId);
-
-                        if (editingRestaurant.newImage) {
-                            formData.append("image", editingRestaurant.newImage);
-                        } else if (editingRestaurant.imageUrls?.length > 0) {
-                            // Send existing image URLs if no new image is selected
-                            formData.append("imageUrls", JSON.stringify(editingRestaurant.imageUrls));
-                        }
-
-                        const updated = await api.updateRestaurant(editingRestaurant._id, formData, {
-                            headers: { "Content-Type": "multipart/form-data" }
-                        });
-
-                        if (updated?.data?.restaurant) {
-                            setRestaurants((prev) =>
-                                prev.map((restaurant) =>
-                                    restaurant._id === editingRestaurant._id ? updated.data.restaurant : restaurant
-                                )
-                            );
-                            setFilteredRestaurants((prev) =>
-                                prev.map((restaurant) =>
-                                    restaurant._id === editingRestaurant._id ? updated.data.restaurant : restaurant
-                                )
-                            );
-                            setEditingRestaurant(null); // Close the edit form
-                        } else {
-                            throw new Error("Update failed: No restaurant returned");
-                        }
-                    } catch (err) {
-                        console.error("Update failed:", err);
-                        alert("Failed to update item");
-                    }
-                }}
-            />
-
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                 <h1 className="text-primary-600 text-3xl font-bold mb-4 md:mb-0 text-center md:text-left">Restaurants</h1>
                 <div className="w-full md:max-w-md">
@@ -116,7 +65,7 @@ const RestaurantList = () => {
                                 } bg-opacity-40 border border-black`}
                         >
                             <Link
-                                to={`/restaurant/${restaurant._id}`}
+                                to={`/restaurantRA/${restaurant._id}`}
                                 className="flex items-center space-x-4"
                             >
                                 {restaurant.imageUrls?.length > 0 && (
@@ -136,6 +85,6 @@ const RestaurantList = () => {
     );
 };
 
-export default RestaurantList;
+export default RestaurantListRA;
 
 

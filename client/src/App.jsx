@@ -23,6 +23,8 @@ import CustomerMenuList from './pages/MenuItemService/CustomerMenuList';
 import ManageRestaurants from './pages/RestaurantService/ManageRestaurants';
 import AdminDashboard from './pages/adminDashboard';
 import RestaurantAdminDashboard from './pages/RestaurantAdminDashboard';
+import RestaurantListRA from './pages/RestaurantService/RestaurantListRA';
+import RestaurantProfileRA from './pages/RestaurantService/RestaurantProfileRA';
 
 import Cart from './pages/Cart';
 
@@ -40,6 +42,10 @@ function App() {
       <Route path="/JoinUs" element={<JoinUs />} />
       <Route path="/restaurant" element={<RestaurantList />} />
       <Route path="/restaurant/:id" element={<RestaurantProfile />} />
+
+      <Route path="/restaurantRA" element={<RestaurantListRA />} />
+      <Route path="/restaurantRA/:id" element={<RestaurantProfileRA />} />
+
       <Route path="/createRestaurant" element={<CreateRestaurant />} />
       <Route path="/menuItemCategory" element={<MenuItemCategory />} />
       <Route path="/customerDashboard" element={<CustomerDashboard />} />

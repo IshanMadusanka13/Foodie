@@ -10,7 +10,7 @@ import { FaUtensils, FaHandshake } from "react-icons/fa";
 import CustomerMenuList from './MenuItemService/CustomerMenuList';
 import JoinUs from './RestaurantService/JoinUs';
 import CreateRestaurant from './RestaurantService/CreateRestaurant';
-import ManageRestaurants from './RestaurantService/ManageRestaurants';
+import RestaurantListRA from './RestaurantService/RestaurantListRA';
 
 const RestaurantAdminDashboard = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -27,7 +27,7 @@ const RestaurantAdminDashboard = () => {
             case 'restaurants':
                 return (
                     <div className="p-6">
-                        <ManageRestaurants />
+                        <RestaurantListRA />
                     </div>
                 );
             case 'history':
@@ -54,6 +54,7 @@ const RestaurantAdminDashboard = () => {
                         <CreateRestaurant setActiveView={setActiveView} />
                     </div>
                 );
+            
             default:
                 return <div>Select a view</div>;
         }

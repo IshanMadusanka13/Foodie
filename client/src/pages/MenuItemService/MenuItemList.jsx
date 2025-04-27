@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { api } from '../../utils/fetchapi';
 import { SearchIcon } from '@heroicons/react/solid';  
 import EditMenuItem from './EditMenuItem'; 
+import AddMenuItem from './AddMenuItem';
+import { Pencil, Trash2 } from 'lucide-react';
 
 const MenuItemList = ({ restaurantId }) => {
     const [menuItems, setMenuItems] = useState([]);
@@ -12,6 +14,7 @@ const MenuItemList = ({ restaurantId }) => {
     const [filteredItems, setFilteredItems] = useState([]);
     const [notFoundMessage, setNotFoundMessage] = useState('');
     const [editingItem, setEditingItem] = useState(null);  
+    const [showAddModal, setShowAddModal] = useState(false);
 
     useEffect(() => {
         const fetchMenuItems = async () => {
@@ -94,7 +97,7 @@ const MenuItemList = ({ restaurantId }) => {
                             headers: { "Content-Type": "multipart/form-data" }
                         });
 
-                        if (updated?.data?.restaurant) {
+                        if (updated?.data?.item) {
                             setMenuItems((prev) =>
                                 prev.map((item) => (
                                     item._id === editingItem._id ? updated.data.item : item)
@@ -116,6 +119,19 @@ const MenuItemList = ({ restaurantId }) => {
                 }}
             />
 
+            {/* Add Menu Item Modal */}
+            {showAddModal && (
+                <AddMenuItem
+                    onClose={() => setShowAddModal(false)}
+                    onSave={async (newItem) => {
+                        setMenuItems(prev => [...prev, newItem]);
+                        setFilteredItems(prev => [...prev, newItem]);
+                        setShowAddModal(false);
+                    }}
+                />
+            )}
+
+
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-3xl font-bold">Menu</h2>
                 <div className="flex items-center space-x-4">
@@ -131,6 +147,13 @@ const MenuItemList = ({ restaurantId }) => {
                     >
                         <SearchIcon className="w-5 h-5" />
                     </button>
+                    {/* Add Item Button */}
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+                    >
+                        Add Item
+                    </button>
                 </div>
             </div>
 
@@ -143,8 +166,23 @@ const MenuItemList = ({ restaurantId }) => {
                         key={item._id}
                         className="bg-white shadow-md rounded-lg p-4 border border-gray-200"
                     >
-                        <h3 className="text-xl text-black font-semibold mb-4">{item.name}</h3>                            
-                        <p className="text-gray-600">{item.description}</p>
+                        <div className="flex justify-between items-start">
+                            <h3 className="mb-2 text-lg sm:text-xl font-semibold text-black">{item.name}</h3>
+                            <div className="flex gap-2">                        
+                            <button
+                                onClick={() => setEditingItem(item)} // Open edit modal
+                                className="text-blue-600 hover:text-blue-800"
+                            >
+                                <Pencil className="w-5 h-5 text-blue-600 hover:text-blue-800" />
+                            </button>
+                            <button
+                                onClick={() => handleDelete(item._id)}
+                                className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        </div>
+                        </div>                        
                         <p className="text-green-600 font-bold mt-2">${item.price.toFixed(2)}</p>
                         {item.imageUrls?.length > 0 && (
                             <img
@@ -165,7 +203,7 @@ const MenuItemList = ({ restaurantId }) => {
 
 // Prop validation for restaurantId
 MenuItemList.propTypes = {
-    restaurantId: PropTypes.string.isRequired,  
+    restaurantId: PropTypes.string.isRequired, 
 };
 
 export default MenuItemList;
