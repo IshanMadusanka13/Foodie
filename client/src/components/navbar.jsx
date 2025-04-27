@@ -20,10 +20,7 @@ const NavBar = () => {
             <nav className="relative px-4 py-4 flex justify-between items-center bg-white">
                 {/* Logo */}
                 <a className="text-3xl font-bold leading-none" href="#">
-                    {/* Logo SVG */}
-                    <div className="font-bold text-primary-600 text-3xl text-black">
-                        <h1>Foodie</h1>
-                    </div>   
+                    {/* Logo SVG */}                      
                 </a>
 
                 {!currentUser ? (
