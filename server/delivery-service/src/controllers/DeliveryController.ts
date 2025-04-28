@@ -94,6 +94,19 @@ export class DeliveryController {
       if (!delivery) {
         res.status(404).json({ message: 'Delivery not found' });
       } else {
+        // Get the Socket.io instance from the app
+        const io = req.app.get('io');
+        if (io) {
+          // Emit the status update event
+          logger.info(`Emitting delivery:status_updated event for delivery ${id} from controller`);
+          io.to(`delivery:${id}`).emit('delivery:status_updated', {
+            deliveryId: id,
+            status: status,
+            timestamp: new Date(),
+            order_id: delivery.order_id
+          });
+        }
+        
         res.json(delivery);
       }
     } catch (err: any) {

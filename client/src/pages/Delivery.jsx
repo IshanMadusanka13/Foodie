@@ -438,9 +438,18 @@ const handleUpdateStatus = async (status) => {
   try {
     if (!activeDelivery) throw new Error("No active delivery");
     
+    console.log(`Updating delivery ${activeDelivery.delivery_id} status to ${status}`);
     const result = await api.updateDeliveryStatus(activeDelivery.delivery_id, status);
-    
+    console.log("Update status result:", result);
+
     if (result) {
+      // Manually emit the status update via socket for immediate feedback
+      const socket = getSocket();
+      socket.emit('delivery:status_update', {
+        deliveryId: activeDelivery.delivery_id,
+        status: status,
+        timestamp: new Date()
+      });
       setActiveDelivery(result);
       
       if (status === 'collected') {
@@ -448,7 +457,7 @@ const handleUpdateStatus = async (status) => {
       } else if (status === 'delivered') {
         // Leave the delivery tracking room
         leaveDeliveryTracking(activeDelivery.delivery_id);
-        
+        console.log("Delivery completed, clearing active delivery");
         setActiveDelivery(null);
         setRouteToDestination(null);
         setEstimatedTime(null);
@@ -456,10 +465,12 @@ const handleUpdateStatus = async (status) => {
         
         // Fetch nearby deliveries again
         if (userLocation) {
+          console.log("Fetching nearby deliveries after delivery completion");
           const nearbyDeliveries = await api.getNearbyDeliveries(
             userLocation.longitude, 
             userLocation.latitude
           );
+          console.log("New nearby deliveries:", nearbyDeliveries);
           setNearbyDeliveries(nearbyDeliveries);
         }
       }

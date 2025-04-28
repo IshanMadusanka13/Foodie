@@ -29,6 +29,9 @@ const io = new Server(server, {
   transports: ['websocket', 'polling'] // Ensure WebSocket transport is enabled
 });
 
+// Make io available to controllers
+app.set('io', io);
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
   logger.info(`Client connected: ${socket.id}`);
@@ -146,10 +149,12 @@ const handleDeliveryStatusUpdated = async (statusData: any) => {
     }
     
     // Notify connected clients about the status change via Socket.io
+    logger.info(`Emitting delivery:status_updated event for delivery ${statusData.delivery_id}`);
     io.to(`delivery:${statusData.delivery_id}`).emit('delivery:status_updated', {
       deliveryId: statusData.delivery_id,
       status: statusData.status,
-      timestamp: new Date()
+      timestamp: new Date(),
+      order_id: updatedDelivery.order_id
     });
     
     // Publish notification event for the order service and customer notifications

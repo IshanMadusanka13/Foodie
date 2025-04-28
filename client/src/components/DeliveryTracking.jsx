@@ -68,14 +68,16 @@ const DeliveryTracking = () => {
 
   // Initialize socket and fetch delivery data
   useEffect(() => {
+    console.log('Initializing socket and fetching delivery data for ID:', deliveryId);
     // Initialize socket connection
-    initSocket('http://localhost:5005'); // Use your delivery service URL
+    initSocket();
     
     // Fetch delivery details
     const fetchDelivery = async () => {
       try {
         console.log('Fetching delivery details for deliveryId:', deliveryId);
         const data = await api.trackDelivery(deliveryId);
+        console.log('Received delivery data:', data);
         setDelivery(data);
         
         // Set map center to restaurant location initially
@@ -85,6 +87,7 @@ const DeliveryTracking = () => {
         
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching delivery details:', err);
         setError('Failed to load delivery details');
         setLoading(false);
       }
@@ -101,11 +104,13 @@ const DeliveryTracking = () => {
   // Join delivery tracking room and listen for updates
   useEffect(() => {
     if (delivery) {
+      console.log(`Joining delivery tracking room for delivery: ${deliveryId}`);
       // Join the delivery tracking room
       joinDeliveryTracking(deliveryId);
       
       // Set up listener for location updates
       onDeliveryLocationUpdate((data) => {
+        console.log('Received location update:', data);
         if (data.deliveryId === deliveryId) {
           const updatedLocation = {
             latitude: data.location.latitude,
@@ -125,30 +130,33 @@ const DeliveryTracking = () => {
         }
       });
       
-      return () => {
-        // Leave the delivery tracking room when component unmounts
-        leaveDeliveryTracking(deliveryId);
-        offDeliveryLocationUpdate();
-      };
-    }
-  }, [delivery, deliveryId]);
-
-  useEffect(() => {
-    if (delivery) {
       // Set up listener for status updates
       const socket = getSocket();
       
       socket.on('delivery:status_updated', (data) => {
+        console.log('Received status update:', data);
         if (data.deliveryId === deliveryId) {
+          console.log(`Updating delivery status to: ${data.status}`);
           setDelivery(prev => ({
             ...prev,
             status: data.status,
             updated_at: data.timestamp
           }));
+          
+          // Update map center based on new status
+          if (data.status === 'accepted' && delivery.restaurant_location) {
+            setMapCenter([delivery.restaurant_location.latitude, delivery.restaurant_location.longitude]);
+          } else if (data.status === 'collected' && delivery.customer_location) {
+            setMapCenter([delivery.customer_location.latitude, delivery.customer_location.longitude]);
+          }
         }
       });
       
       return () => {
+        // Leave the delivery tracking room when component unmounts
+        console.log(`Leaving delivery tracking room for delivery: ${deliveryId}`);
+        leaveDeliveryTracking(deliveryId);
+        offDeliveryLocationUpdate();
         socket.off('delivery:status_updated');
       };
     }
@@ -321,7 +329,7 @@ const DeliveryTracking = () => {
               </svg>
             </div>
             <div className="absolute top-0 left-8 h-1 w-16 bg-gray-300">
-              <div className={`h-full ${
+            <div className={`h-full ${
                 delivery.status === 'delivered' 
                   ? 'bg-green-500' : 'bg-gray-300'
               }`}></div>
@@ -369,3 +377,4 @@ function deg2rad(deg) {
 }
 
 export default DeliveryTracking;
+
