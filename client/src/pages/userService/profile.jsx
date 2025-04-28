@@ -102,7 +102,6 @@ const Profile = () => {
                         <div className="h-6 w-96 bg-white bg-opacity-10 rounded mx-auto mt-2 animate-pulse"></div>
                     </div>
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden">
-                        {/* Header skeleton */}
                         <div className="relative bg-gradient-to-r from-green-500 to-green-700 h-48 animate-pulse">
                             <div className="absolute -bottom-16 left-8">
                                 <div className="w-32 h-32 rounded-full bg-white bg-opacity-30 animate-pulse"></div>

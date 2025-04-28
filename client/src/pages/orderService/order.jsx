@@ -3,73 +3,65 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useContext } from 'react';
 import { ThemeContext } from '../../contexts/ThemeContext';
+import { api } from '../../utils/fetchapi'
 
 const Order = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { darkMode } = useContext(ThemeContext);
-  
-  // Use dummy data as fallback if no state is passed
-  const dummyData = {
-    restaurantId: 'rest123',
-    restaurantName: 'Delicious Bites',
-    restaurantLocation: { longitude: -73.9857, latitude: 40.7484 },
-    restaurantAddress: '123 Foodie Ave, New York, NY 10001',
-    deliveryDistance: '2.5', // Added delivery distance
-    items: [
-      { menuItemId: 'item1', menuItemName: 'Chicken Burger', menuItemPrice: 8.99, qty: 2 },
-      { menuItemId: 'item2', menuItemName: 'French Fries', menuItemPrice: 3.99, qty: 1 },
-      { menuItemId: 'item3', menuItemName: 'Soda', menuItemPrice: 1.99, qty: 2 }
-    ]
-  };
 
-  // Get order details from location state or use dummy data
-  const orderDetails = location.state?.orderDetails || dummyData;
-  
-  // State for payment method
+  if (!localStorage.getItem("orderDetails")) {
+    navigate("/")
+  }
+
+  const orderDetails = JSON.parse(localStorage.getItem("orderDetails"));
+
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isLoading, setIsLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
 
-  // Calculate subtotal, delivery fee, and total
   const subtotal = orderDetails.items.reduce((sum, item) => {
     return sum + (item.menuItemPrice * item.qty);
   }, 0);
-  
-  const deliveryFee = 2.99;
+
+  const deliveryFee = 150 * orderDetails.deliveryDistance;
   const total = subtotal + deliveryFee;
 
-  // Handle payment method change
   const handlePaymentMethodChange = (e) => {
     setPaymentMethod(e.target.value);
   };
 
-  // Handle order submission
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
-    
+
     setIsLoading(true);
-    
-    // Simulate API call
+
     setTimeout(() => {
       setIsLoading(false);
       setOrderComplete(true);
-      
-      // In a real app, you would send order to backend here
-      console.log('Order submitted:', {
-        user: currentUser?.email,
+
+      api.createOrder({
+        customer: currentUser?.user_id,
         restaurant: orderDetails.restaurantName,
         items: orderDetails.items,
         paymentMethod,
-        subtotal,
+        orderAmount: subtotal,
+        deliveryFee,
+        total
+      });
+
+      console.log('Order submitted:', {
+        customer: currentUser?.user_id,
+        restaurant: orderDetails.restaurantName,
+        items: orderDetails.items,
+        paymentMethod,
+        orderAmount: subtotal,
         deliveryFee,
         total
       });
     }, 2000);
   };
 
-  // Reset to homepage after order completion
   const handleBackToHome = () => {
     navigate('/');
   };
@@ -87,7 +79,7 @@ const Order = () => {
               <p className={`mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 Your order has been placed and will be delivered shortly.
               </p>
-              <button 
+              <button
                 onClick={handleBackToHome}
                 className={`mt-6 py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-white font-bold rounded-xl transition duration-200`}
               >
@@ -98,14 +90,12 @@ const Order = () => {
             <>
               <h1 className="text-2xl font-bold mb-6 text-center">Complete Your Order</h1>
 
-              {/* Restaurant Information */}
               <div className={`p-4 mb-6 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-gray-100'}`}>
                 <h2 className="text-xl font-semibold">{orderDetails.restaurantName}</h2>
                 <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{orderDetails.restaurantAddress}</p>
-                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Delivery Distance: {orderDetails.deliveryDistance} miles</p>
+                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Delivery Distance: {orderDetails.deliveryDistance} Kilo Metres</p>
               </div>
 
-              {/* Order Items */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-3">Order Items</h3>
                 <div className={`rounded-lg overflow-hidden ${darkMode ? 'bg-slate-700' : 'bg-gray-50'}`}>
@@ -123,8 +113,8 @@ const Order = () => {
                         <tr key={item.menuItemId} className={`border-t ${darkMode ? 'border-slate-600' : 'border-gray-200'}`}>
                           <td className="py-3 px-4">{item.menuItemName}</td>
                           <td className="py-3 px-4 text-right">{item.qty}</td>
-                          <td className="py-3 px-4 text-right">${item.menuItemPrice.toFixed(2)}</td>
-                          <td className="py-3 px-4 text-right">${(item.menuItemPrice * item.qty).toFixed(2)}</td>
+                          <td className="py-3 px-4 text-right">LKR {item.menuItemPrice.toFixed(2)}</td>
+                          <td className="py-3 px-4 text-right">LKR {(item.menuItemPrice * item.qty).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -132,33 +122,30 @@ const Order = () => {
                 </div>
               </div>
 
-              {/* Order Summary */}
               <div className={`p-4 mb-6 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-gray-100'}`}>
                 <h3 className="text-lg font-semibold mb-3">Order Summary</h3>
                 <div className="flex justify-between mb-2">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>LKR {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span>Delivery Fee</span>
-                  <span>${deliveryFee.toFixed(2)}</span>
+                  <span>LKR {deliveryFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg mt-3 pt-3 border-t border-gray-300">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>LKR {total.toFixed(2)}</span>
                 </div>
               </div>
 
               <form onSubmit={handleSubmitOrder}>
-                {/* Payment Method */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold mb-3">Payment Method</h3>
                   <div className="flex flex-col space-y-3">
-                    <label className={`flex items-center p-3 rounded-lg cursor-pointer ${
-                      paymentMethod === 'cash' 
-                        ? (darkMode ? 'bg-green-600 text-white' : 'bg-green-100 border-green-500') 
-                        : (darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-gray-50')
-                    } border`}>
+                    <label className={`flex items-center p-3 rounded-lg cursor-pointer ${paymentMethod === 'cash'
+                      ? (darkMode ? 'bg-green-600 text-white' : 'bg-green-100 border-green-500')
+                      : (darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-gray-50')
+                      } border`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -173,11 +160,10 @@ const Order = () => {
                       </div>
                     </label>
 
-                    <label className={`flex items-center p-3 rounded-lg cursor-pointer ${
-                      paymentMethod === 'card' 
-                        ? (darkMode ? 'bg-green-600 text-white' : 'bg-green-100 border-green-500') 
-                        : (darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-gray-50')
-                    } border`}>
+                    <label className={`flex items-center p-3 rounded-lg cursor-pointer ${paymentMethod === 'card'
+                      ? (darkMode ? 'bg-green-600 text-white' : 'bg-green-100 border-green-500')
+                      : (darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-gray-50')
+                      } border`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -194,15 +180,12 @@ const Order = () => {
                   </div>
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full py-3 px-6 ${
-                    darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'
-                  } text-white font-bold rounded-xl transition duration-200 flex justify-center ${
-                    isLoading ? 'opacity-70 cursor-not-allowed' : ''
-                  }`}
+                  className={`w-full py-3 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'
+                    } text-white font-bold rounded-xl transition duration-200 flex justify-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
                 >
                   {isLoading ? (
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -210,7 +193,7 @@ const Order = () => {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   ) : (
-                    `Place Order - $${total.toFixed(2)}`
+                    `Place Order - LKR ${total.toFixed(2)}`
                   )}
                 </button>
               </form>

@@ -127,17 +127,24 @@ const DeliverLocation = () => {
             deliveryLocation: position,
         });
 
-        localStorage.setItem("orderDetails", JSON.stringify(orderDetails))
-        console.log(orderDetails)
 
-        console.log(JSON.parse(localStorage.getItem("orderDetails")));
+        localStorage.setItem("orderDetails", JSON.stringify({
+            ...orderDetails,
+            deliveryDistance: calculateDistance(
+                { lat: 40.7484, lng: -73.9857 },
+                position
+            ).toFixed(2),
+            deliveryAddress: address,
+            deliveryAddressNote: addressNote,
+            deliveryLocation: position,
+        }))
 
         navigate('/order');
     };
 
     const calculateDistance = (point1, point2) => {
         const toRad = (value) => (value * Math.PI) / 180;
-        const R = 3958.8;
+        const R = 6371;
         const dLat = toRad(point2.lat - point1.lat);
         const dLng = toRad(point2.lng - point1.lng);
         const a =

@@ -9,7 +9,7 @@ export class OrderService implements IOrderService {
             const count = await Order.countDocuments();
             const nextSequence = count + 1;
             const formattedSequence = nextSequence.toString().padStart(4, '0');
-            const orderId = `F${formattedSequence}`;
+            const orderId = `ORD${formattedSequence}`;
             logger.debug('Order ID generated');
             return orderId;
 

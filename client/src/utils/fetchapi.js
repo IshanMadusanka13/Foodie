@@ -83,6 +83,14 @@ export const api = {
             body: JSON.stringify(userData)
         }),
 
+
+    //Order
+    createOrder: (orderDetails, user_id) =>
+        fetchApi(ORDER_SERVICE_API_URL + '/order/', {
+            method: 'POST',
+            body: JSON.stringify(orderDetails)
+        }),
+
 };
 
 export default api;
