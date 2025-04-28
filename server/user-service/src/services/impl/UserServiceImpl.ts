@@ -108,6 +108,28 @@ export class UserService implements IUserService {
     }
   }
 
+  async updateProfilePicture(userId: string, profilePictureUrl: string): Promise<IUser | null> {
+    logger.info({ userId }, 'Updating profile picture');
+    try {
+        const updatedUser = await User.findOneAndUpdate(
+            { user_id: userId },
+            { profile_picture: profilePictureUrl },
+            { new: true }
+        );
+        
+        if (updatedUser) {
+            logger.info('Profile picture updated successfully');
+        } else {
+            logger.warn('User not found for profile picture update');
+        }
+        
+        return updatedUser;
+    } catch (error) {
+        logger.error({ error, userId }, 'Failed to update profile picture');
+        throw error;
+    }
+}
+
   async deleteUser(userId: string): Promise<boolean> {
     logger.info({ userId }, 'Deleting user');
     try {

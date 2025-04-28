@@ -33,7 +33,7 @@ const OrderSchema: Schema = new Schema<IOrder>({
     total: { type: Number, required: true },
     status: { type: String, required: true, default: 'pending' },
     paymentMethod: { type: String, required: true },
-    placedAt: { type: Date }
+    placedAt: { type: Date, default: Date.now }
 });
 
 export default mongoose.model<IOrder>('Order', OrderSchema);

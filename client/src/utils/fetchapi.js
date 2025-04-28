@@ -83,12 +83,23 @@ export const api = {
             body: JSON.stringify(userData)
         }),
 
+    updateProfileImage: (userData, user_id) =>
+        fetchApi(USER_SERVICE_API_URL + '/users/pic/' + user_id, {
+            method: 'PUT',
+            body: JSON.stringify(userData)
+        }),
+
 
     //Order
-    createOrder: (orderDetails, user_id) =>
+    createOrder: (orderDetails) =>
         fetchApi(ORDER_SERVICE_API_URL + '/order/', {
             method: 'POST',
             body: JSON.stringify(orderDetails)
+        }),
+
+    getOrderByUser: (user_id) =>
+        fetchApi(ORDER_SERVICE_API_URL + '/order/user/' + user_id, {
+            method: 'GET'
         }),
 
 };

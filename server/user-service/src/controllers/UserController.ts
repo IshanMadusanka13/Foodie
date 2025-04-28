@@ -57,6 +57,19 @@ export class UserController {
     }
   };
 
+  updatePicture = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const updatedUser = await userService.updateUser(req.params.id, req.body);
+      if (!updatedUser) {
+        res.status(404).json({ message: 'User not found' });
+      } else {
+        res.json(updatedUser);
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+
   delete = async (req: Request, res: Response): Promise<void> => {
     try {
       const deleted = await userService.deleteUser(req.params.id);

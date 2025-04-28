@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Save, MapPin, Phone, Mail, Shield, X, Camera, PenSquare, Clock, FileText, ShoppingBag, CreditCard } from 'lucide-react';
+import { Edit, Save, MapPin, Phone, Mail, Shield, X, Camera, Clock, FileText, CreditCard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { api } from '../../utils/fetchapi'
+import { api } from '../../utils/fetchapi';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://nelqemsnxiomtaosceui.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lbHFlbXNueGlvbXRhb3NjZXVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4NTA1OTEsImV4cCI6MjA2MTQyNjU5MX0.blyjPV4hGnAQpaCyWJD1LAljPt5SWa8o4SxvWEAGAUU';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const Profile = () => {
     const { currentUser, loading: authLoading } = useAuth();
@@ -11,6 +16,7 @@ const Profile = () => {
     const [formData, setFormData] = useState({});
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     const navigate = useNavigate();
 
@@ -27,17 +33,9 @@ const Profile = () => {
                     role: currentUser.role || '',
                     profile_image: currentUser.profileImage || '',
                     member_since: 'January 2023',
-                    favorite_cuisines: ['Italian', 'Japanese', 'Mexican'],
-                    payment_methods: [
-                        { id: 1, type: 'Visa', last4: '4242', default: true },
-                        { id: 2, type: 'Mastercard', last4: '5678', default: false }
-                    ],
-                    recent_orders: [
-                        { id: 'ORD-95721', restaurant: 'Green Garden Bistro', date: '2025-04-18', status: 'Delivered', total: 34.99 },
-                        { id: 'ORD-95532', restaurant: 'Spice Palace', date: '2025-04-10', status: 'Delivered', total: 52.25 },
-                        { id: 'ORD-94998', restaurant: 'Fresh Bites', date: '2025-04-03', status: 'Delivered', total: 27.50 }
-                    ]
+                    recent_orders: []
                 });
+                getOrders();
                 setLoading(false);
             } else {
                 console.log("No user found, redirecting to login");
@@ -50,6 +48,33 @@ const Profile = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+    };
+
+    const getOrders = async () => {
+        try {
+            const response = await api.getOrderByUser(currentUser.user_id);
+
+            const transformedOrders = response.map(order => ({
+                id: order.order_id,
+                restaurant: order.restaurant,
+                date: new Date(order.placedAt).toISOString().split('T')[0],
+                status: order.status,
+                total: order.total,
+                items: order.items,
+                orderAmount: order.orderAmount,
+                deliveryFee: order.deliveryFee,
+                paymentMethod: order.paymentMethod
+            }));
+
+            setFormData(prev => ({
+                ...prev,
+                recent_orders: transformedOrders
+            }));
+
+        } catch (error) {
+            console.error('Error getting orders:', error);
+            setSuccessMessage('Failed to get orders. Please try again.');
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -81,16 +106,59 @@ const Profile = () => {
         }
     };
 
-
-    const handleFileUpload = (e) => {
+    const handleFileUpload = async (e) => {
         const file = e.target.files[0];
-        if (file) {
+        if (!file) return;
+
+        try {
+            setLoading(true);
+            
             const reader = new FileReader();
             reader.onload = () => {
                 setFormData({ ...formData, profile_image: reader.result });
             };
             reader.readAsDataURL(file);
+            
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${currentUser.user_id}-${Date.now()}.${fileExt}`;
+            const filePath = `profile-images/${fileName}`;
+            
+            const { data, error } = await supabase.storage
+                .from('foodie')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+                
+            if (error) throw error;
+            
+            const { data: urlData } = supabase.storage
+                .from('foodie')
+                .getPublicUrl(filePath);
+                
+            const imageUrl = urlData.publicUrl;
+            
+            await api.updateProfileImage({ profileImage: imageUrl }, currentUser.user_id);
+            
+            setSuccessMessage('Profile image updated successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+            
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            setSuccessMessage('Failed to update profile image. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    const viewOrderDetails = (order) => {
+        console.log(order)
+        setSelectedOrder(order);
+    };
+
+    const closeOrderDetails = () => {
+        setSelectedOrder(null);
     };
 
     if (loading || authLoading) {
@@ -217,15 +285,6 @@ const Profile = () => {
                                         }`}
                                 >
                                     Order History
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('payment')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'payment'
-                                        ? 'border-green-500 text-green-600 dark:text-green-400'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                                        }`}
-                                >
-                                    Payment Methods
                                 </button>
                             </nav>
                         </div>
@@ -358,26 +417,6 @@ const Profile = () => {
                                             </div>
 
                                             <div>
-                                                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">Preferences</h3>
-                                                <div>
-                                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Favorite Cuisines</p>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {formData.favorite_cuisines && formData.favorite_cuisines.map((cuisine, index) => (
-                                                            <span
-                                                                key={index}
-                                                                className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full dark:bg-green-900 dark:text-green-200"
-                                                            >
-                                                                {cuisine}
-                                                            </span>
-                                                        ))}
-                                                        <button className="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full flex items-center dark:bg-slate-700 dark:text-gray-300">
-                                                            <PenSquare size={14} className="mr-1" /> Edit
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div>
                                                 <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">Account Details</h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div className="flex items-start">
@@ -405,9 +444,6 @@ const Profile = () => {
                                 <div>
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Order History</h2>
-                                        <button className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200 flex items-center dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600">
-                                            <ShoppingBag size={18} className="mr-2" /> View All Orders
-                                        </button>
                                     </div>
 
                                     <div className="overflow-hidden shadow rounded-lg">
@@ -455,7 +491,7 @@ const Profile = () => {
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                            <button className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
+                                                            <button className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300" onClick={viewOrderDetails}>
                                                                 View Details
                                                             </button>
                                                         </td>
@@ -463,77 +499,6 @@ const Profile = () => {
                                                 ))}
                                             </tbody>
                                         </table>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'payment' && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Payment Methods</h2>
-                                        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
-                                            <CreditCard size={18} className="mr-2" /> Add Payment Method
-                                        </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {formData.payment_methods && formData.payment_methods.map((method) => (
-                                            <div
-                                                key={method.id}
-                                                className={`border rounded-lg p-4 flex justify-between items-center ${method.default
-                                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
-                                                    : 'border-gray-200 dark:border-slate-700'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center">
-                                                    <div className="bg-white p-2 rounded-md shadow mr-4 dark:bg-slate-700">
-                                                        {method.type === 'Visa' ? (
-                                                            <svg className="h-8 w-8" viewBox="0 0 48 48" fill="none">
-                                                                <rect width="48" height="48" fill="white" />
-                                                                <path d="M15 24L17 17H21L19 24H15Z" fill="#3C58BF" />
-                                                                <path d="M15 24L18 17H21L19 24H15Z" fill="#293688" />
-                                                                <path d="M33 17L30 24H26L29 17H33Z" fill="#3C58BF" />
-                                                                <path d="M33 17L30 24H27L29 17H33Z" fill="#293688" />
-                                                                <path d="M27 17L24 24H21L22 21L23 17H27Z" fill="#3C58BF" />
-                                                                <path d="M27 17L24 24H21L22 21L23 17H27Z" fill="#293688" />
-                                                                <path d="M18 29L16 31H27L28 29H18Z" fill="#FFBC00" />
-                                                                <path d="M14.5 24H19L21 31H16.5L14.5 24Z" fill="#3C58BF" />
-                                                                <path d="M14.5 24H19L21 31H16.5L14.5 24Z" fill="#293688" />
-                                                                <path d="M22.5 24H28L26 31H20.5L22.5 24Z" fill="#3C58BF" />
-                                                                <path d="M22.5 24H28L26 31H20.5L22.5 24Z" fill="#293688" />
-                                                                <path d="M29.5 24H34L31.5 31H27L29.5 24Z" fill="#3C58BF" />
-                                                                <path d="M29.5 24H34L31.5 31H27L29.5 24Z" fill="#293688" />
-                                                            </svg>
-                                                        ) : (
-                                                            <svg className="h-8 w-8" viewBox="0 0 48 48" fill="none">
-                                                                <rect width="48" height="48" fill="white" />
-                                                                <path d="M16 19H32V29H16V19Z" fill="#16366F" />
-                                                                <path d="M19.5 24C19.5 22.3431 20.8431 21 22.5 21C24.1569 21 25.5 22.3431 25.5 24C25.5 25.6569 24.1569 27 22.5 27C20.8431 27 19.5 25.6569 19.5 24Z" fill="#D9222A" />
-                                                                <path d="M22.5 27C24.1569 27 25.5 25.6569 25.5 24C25.5 22.3431 24.1569 21 22.5 21" fill="#EE9F2D" />
-                                                                <path d="M25.5 24C25.5 22.3431 26.8431 21 28.5 21C30.1569 21 31.5 22.3431 31.5 24C31.5 25.6569 30.1569 27 28.5 27C26.8431 27 25.5 25.6569 25.5 24Z" fill="#D9222A" />
-                                                                <path d="M28.5 27C30.1569 27 31.5 25.6569 31.5 24C31.5 22.3431 30.1569 21 28.5 21" fill="#EE9F2D" />
-                                                            </svg>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium text-gray-800 dark:text-white">{method.type} •••• {method.last4}</p>
-                                                        {method.default && (
-                                                            <span className="text-xs text-green-700 dark:text-green-400">Default</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex space-x-2">
-                                                    <button className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
-                                                        <PenSquare size={18} />
-                                                    </button>
-                                                    {!method.default && (
-                                                        <button className="text-red-500 hover:text-red-700 dark:hover:text-red-400">
-                                                            <X size={18} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
                                     </div>
                                 </div>
                             )}
