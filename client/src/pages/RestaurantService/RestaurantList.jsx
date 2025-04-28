@@ -112,7 +112,8 @@ const RestaurantList = () => {
                     {filteredRestaurants.map((restaurant) => (
                         <li
                             key={restaurant._id}
-                            className={`flex justify-between items-center p-4 rounded-lg shadow ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'
+                            className={`flex justify-between items-center p-4 rounded-lg shadow 
+                                ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500' 
                                 } bg-opacity-40 border border-black`}
                         >
                             <Link

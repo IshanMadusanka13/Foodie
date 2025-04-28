@@ -63,7 +63,7 @@ const CustomerDashboard = () => {
     return (
         <div className="flex h-screen bg-gray-50">
             {/* Collapsible Sidebar */}
-            <div className={`bg-white shadow-md ${sidebarCollapsed ? 'w-20' : 'w-64'} transition-all duration-300`}>
+            <div className={`bg-white shadow-md ${sidebarCollapsed ? 'w-15' : 'w-48'} transition-all duration-300`}>
                 {/* Sidebar Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 h-16">
                     {!sidebarCollapsed && <h2 className="text-xl font-bold text-primary-600">Foodie</h2>}

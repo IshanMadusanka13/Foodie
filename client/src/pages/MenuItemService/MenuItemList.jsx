@@ -122,15 +122,15 @@ const MenuItemList = ({ restaurantId }) => {
             {/* Add Menu Item Modal */}
             {showAddModal && (
                 <AddMenuItem
+                    restaurantId={restaurantId}
                     onClose={() => setShowAddModal(false)}
-                    onSave={async (newItem) => {
+                    onSave={(newItem) => {
                         setMenuItems(prev => [...prev, newItem]);
                         setFilteredItems(prev => [...prev, newItem]);
                         setShowAddModal(false);
                     }}
                 />
             )}
-
 
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-3xl font-bold">Menu</h2>

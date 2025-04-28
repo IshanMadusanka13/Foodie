@@ -145,12 +145,12 @@ const RestaurantProfile = () => {
                 <nav className="flex space-x-8 max-w-6xl mx-auto px-6">                    
                     <button
                         onClick={() => setActiveSection('categories')}
-                        className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'categories'
-                            ? 'border-primary-500 text-primary-600'
+                        className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'categories'  //button color hidden with white
+                            ? 'border-white text-primary-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
-                        Categories
+                        {/* Categories */}
                     </button>                    
                 </nav>
             </div>

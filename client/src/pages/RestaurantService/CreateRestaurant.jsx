@@ -195,14 +195,14 @@ const CreateRestaurant = ({ setActiveView }) => {
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md" >
+        <div className="text-black bg-white p-6 rounded-lg shadow-md" >
             <button
                 onClick={() => setActiveView('join_Us')}
                 className="mb-4 text-primary-600 hover:text-primary-800"
             >
                 ← Back 
             </button>
-            <h2 className="text-black text-3xl mb-4 font-semibold text-center">Create Your Restaurant</h2>
+            <h2 className="text-black text-3xl mb-8 font-semibold text-center">Create Your Restaurant</h2>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Owner ID */}
                     <div>

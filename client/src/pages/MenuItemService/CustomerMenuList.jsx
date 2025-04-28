@@ -141,7 +141,7 @@ const CustomerMenuList = () => {
                 <div className="p-4 bg-white">
                     {/* Location and Search Section */}
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-                        <div className="flex items-center space-x-4 bg-white px-6 py-4 shadow-md w-full md:w-1/2">
+                        <div className="border flex items-center space-x-4 bg-white px-6 py-3 shadow-md w-full md:w-1/2">
                             <FaMapMarkerAlt className="text-primary-500 mr-2" />
                             <div className="flex-1">
                                 <p className="text-sm text-gray-600">{location}</p>
@@ -173,15 +173,17 @@ const CustomerMenuList = () => {
                                     setNotFoundMessage('');
                                 }}
                                 className={`
-                                            flex items-center gap-2 px-4 py-2 min-w-fit rounded-3xl text-sm font-medium
-                                            transition duration-200 border shadow-sm
-                                            ${!selectedCategory
+                                    flex items-center gap-2 px-4 py-2 min-w-fit rounded-3xl text-sm font-medium
+                                    transition duration-200 border shadow-sm
+                                    ${!selectedCategory
                                         ? 'bg-gray-200 border-primary-400 border-2 text-black border-blue-700 shadow-md'
                                         : 'bg-gray-50 text-gray-700 hover:bg-gray-150'}
-                                        `}
+                                    `}
                             >
-                                <span className="text-lg">🍽️</span>
-                                <span className="text-xs sm:text-sm">All</span>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-lg">🍽️</span>
+                                    <span className="text-xs sm:text-sm">All</span>
+                                </div>                                
                             </button>
                         )}
 
@@ -223,7 +225,7 @@ const CustomerMenuList = () => {
                         {paginatedItems.map((item) => (
                             <div key={item._id} className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
                                 <div className="flex justify-between items-center">
-                                    <h3 className="text-xl text-black font-semibold">{item.name}</h3>
+                                    <h2 className="text-xl text-black font-semibold">{item.name}</h2>
                                     <h3 className="text-primary-600 font-bold">
                                         {restaurantMap[item.restaurantId?._id] || 'Unknown Restaurant'}
                                     </h3>
@@ -239,7 +241,7 @@ const CustomerMenuList = () => {
                                 )}
 
                                 <div className="flex justify-between items-center mt-4">
-                                    <p className={`text-sm ${item.isAvailable ? 'text-green-500' : 'text-red-500'}`}>
+                                    <p className={`text-md ${item.isAvailable ? 'text-green-500' : 'text-red-500'}`}>
                                         {item.isAvailable ? 'Available' : 'Not Available'}
                                     </p>
 
@@ -299,7 +301,7 @@ const CustomerMenuList = () => {
 
                     {/* Cart Icon */}
                     <div
-                        className="fixed bottom-4 right-4 bg-primary-500 text-white p-3 rounded-full shadow-lg cursor-pointer"
+                        className="fixed bottom-4 right-4 bg-primary-500 text-white p-3 rounded-full shadow-inner shadow-lg cursor-pointer"
                         onClick={() => setShowCart(!showCart)}
                     >
                         <FaShoppingCart className="w-6 h-6" />
@@ -318,7 +320,7 @@ const CustomerMenuList = () => {
                                     <h2 className="text-primary-600 text-xl font-bold">Cart</h2>
                                     <button
                                         onClick={() => setShowCart(false)}
-                                        className="text-gray-500 hover:text-gray-700"
+                                        className="text-gray-500 hover:text-gray-700 text-2xl"
                                     >
                                         &times;
                                     </button>

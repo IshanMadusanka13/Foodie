@@ -89,7 +89,7 @@ const MenuItemCategory = ({
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+            <div className="text-black flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
                 <h2 className="text-2xl sm:text-3xl font-bold mb-4 mr-4 sm:mb-0">Menu</h2>
                 <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     <input
@@ -166,12 +166,7 @@ const MenuItemCategory = ({
                         key={item._id}
                         className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex flex-col"
                     >
-                        <div className="flex justify-between items-start">
-                            <h3 className="mb-2 text-lg sm:text-xl font-semibold text-black">{item.name}</h3>
-                            <span className="text-primary-600 font-bold">
-                                {restaurantMap[item.restaurantId?._id] || 'Unknown Restaurant'}
-                            </span>
-                        </div>
+                        <h3 className="mb-2 text-lg sm:text-xl font-semibold text-black">{item.name}</h3>    
                         <p className="text-gray-600 text-sm">{item.description}</p>
                         <p className="text-green-600 font-bold mt-2">${item.price.toFixed(2)}</p>
                         {item.imageUrls?.length > 0 && (
