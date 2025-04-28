@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { DeliveryService } from '../services/impl/DeliveryServiceImpl';
 import logger from '../config/logger';
+import Delivery, { IDelivery } from '../models/Delivery';
 
 const deliveryService = new DeliveryService();
 
@@ -139,16 +140,109 @@ export class DeliveryController {
         return;
       }
       
-      // In a real implementation, this would update a rider's location in a separate collection
+      // Verify the delivery exists
+      const delivery = await deliveryService.getDeliveryById(id);
+      if (!delivery) {
+        res.status(404).json({ message: 'Delivery not found' });
+        return;
+      }
+      
+      // In a production system, you might store location history in a separate collection
       // For now, we'll just acknowledge the update
       
-      // Broadcast the location update to connected clients via WebSocket
-      // This would be implemented with Socket.io or similar
+      // Publish the location update to connected clients via WebSocket
+      // This is handled by the socket.io event handler in server.ts
       
-      res.json({ success: true });
+      res.json({ 
+        success: true,
+        message: 'Location updated successfully',
+        deliveryId: id,
+        timestamp: new Date()
+      });
     } catch (err: any) {
       logger.error({ err }, 'Error in updateRiderLocation controller');
       res.status(500).json({ message: err.message });
     }
   };
+  
+
+  trackDelivery = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const delivery = await deliveryService.getDeliveryById(id);
+      
+      if (!delivery) {
+        res.status(404).json({ message: 'Delivery not found' });
+        return;
+      }
+      
+      // Return delivery with additional tracking info
+      res.json({
+        ...delivery.toObject(),
+        tracking_enabled: true,
+        last_updated: new Date()
+      });
+    } catch (err: any) {
+      logger.error({ err }, 'Error in trackDelivery controller');
+      res.status(500).json({ message: err.message });
+    }
+  };
+
+  getActiveDeliveryForRider = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { riderId } = req.params;
+      console.log(riderId);
+      
+      // Find active deliveries for this rider (status is not 'delivered' or 'cancelled')
+      const deliveries = await Delivery.find({
+        rider_id: riderId,
+        status: { $in: ['accepted', 'collected'] }
+      });
+      console.log(deliveries);
+      if (deliveries.length === 0) {
+        res.json(null);
+      } else {
+        // Return the most recently updated delivery
+        const activeDelivery = deliveries.sort((a, b) => 
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        )[0];
+        
+        res.json(activeDelivery);
+      }
+    } catch (err: any) {
+      logger.error({ err }, 'Error in getActiveDeliveryForRider controller');
+      res.status(500).json({ message: err.message });
+    }
+  };
+  //home -> latitude: 6.6993360, longitude: 79.9109078
+  createTestOrder = async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Create a test order with random locations
+      const testOrder = {
+        order_id: `O${Math.floor(Math.random() * 10000)}`,
+        restaurant_location: {
+          latitude: 6.6993 + (Math.random() * 0.02 - 0.01),
+          longitude: 79.9109 + (Math.random() * 0.02 - 0.01)
+        },
+        customer_location: {
+          latitude: 6.6993 + (Math.random() * 0.02 - 0.01),
+          longitude: 79.9109 + (Math.random() * 0.02 - 0.01)
+        }
+      };
+      
+      // Create a delivery for this test order
+      const delivery = await deliveryService.createDelivery({
+        order_id: testOrder.order_id,
+        restaurant_location: testOrder.restaurant_location,
+        customer_location: testOrder.customer_location,
+        status: 'pending'
+      });
+      
+      res.status(201).json(delivery);
+    } catch (err: any) {
+      logger.error({ err }, 'Error in createTestOrder controller');
+      res.status(500).json({ message: err.message });
+    }
+  };
+  
 }

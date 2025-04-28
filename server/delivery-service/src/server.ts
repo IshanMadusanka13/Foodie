@@ -9,7 +9,7 @@ import { Server } from 'socket.io';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5009;
+const PORT = process.env.PORT || 5005;
 const MONGO_URI = process.env.MONGO_URI || "";
 const RABBITMQ_URI = process.env.RABBITMQ_URI || "amqp://localhost";
 
@@ -34,22 +34,37 @@ io.on('connection', (socket) => {
   logger.info(`Client connected: ${socket.id}`);
   
   // Handle rider location updates
-  socket.on('rider:location', (data) => {
-    // Broadcast to clients tracking this delivery
-    io.to(`delivery:${data.deliveryId}`).emit('delivery:location', {
-      deliveryId: data.deliveryId,
-      location: {
-        latitude: data.latitude,
-        longitude: data.longitude
-      },
-      timestamp: new Date()
+  // Enhance the rider:location event handler
+    socket.on('rider:location', async (data) => {
+      try {
+        // Validate the data
+        if (!data.deliveryId || !data.latitude || !data.longitude) {
+          logger.warn('Invalid location data received');
+          return;
+        }
+        
+        // Store the location update in database (optional)
+        // This could be in a separate collection for location history
+        
+        // Broadcast to clients tracking this delivery
+        io.to(`delivery:${data.deliveryId}`).emit('delivery:location', {
+          deliveryId: data.deliveryId,
+          location: {
+            latitude: data.latitude,
+            longitude: data.longitude
+          },
+          timestamp: new Date()
+        });
+        
+        logger.info({ 
+          deliveryId: data.deliveryId, 
+          location: { lat: data.latitude, lng: data.longitude } 
+        }, 'Rider location updated');
+      } catch (error) {
+        logger.error({ error, data }, 'Error processing rider location update');
+      }
     });
-    
-    logger.info({ 
-      deliveryId: data.deliveryId, 
-      location: { lat: data.latitude, lng: data.longitude } 
-    }, 'Rider location updated');
-  });
+
   
   // Join a delivery tracking room
   socket.on('join:delivery', (deliveryId) => {
@@ -118,6 +133,17 @@ const handleDeliveryStatusUpdated = async (statusData: any) => {
       deliveryId: statusData.delivery_id,
       status: statusData.status
     }, 'Received delivery status update event');
+
+    // Update the delivery in the database
+    const updatedDelivery = await deliveryService.updateDeliveryStatus(
+      statusData.delivery_id, 
+      statusData.status
+    );
+
+    if (!updatedDelivery) {
+      logger.warn(`Delivery ${statusData.delivery_id} not found for status update`);
+      return;
+    }
     
     // Notify connected clients about the status change via Socket.io
     io.to(`delivery:${statusData.delivery_id}`).emit('delivery:status_updated', {

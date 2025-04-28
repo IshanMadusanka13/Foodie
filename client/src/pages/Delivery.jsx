@@ -23,7 +23,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const restaurantIcon = new L.Icon({
-  iconUrl: '/restaurant-marker.png',
+  iconUrl: '/restaurant.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -32,7 +32,7 @@ const restaurantIcon = new L.Icon({
 });
 
 const customerIcon = new L.Icon({
-  iconUrl: '/customer-marker.png',
+  iconUrl: '/customer.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -41,7 +41,7 @@ const customerIcon = new L.Icon({
 });
 
 const riderIcon = new L.Icon({
-  iconUrl: '/rider-marker.png',
+  iconUrl: '/delivery.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -59,7 +59,7 @@ function MapCenterSetter({ center }) {
 }
 
 const Delivery = () => {
-  const { currentUser } = useAuth() || { currentUser: { user_id: 'dummy-user-id', name: 'Test Rider' } };
+  const { currentUser } = useAuth();
   const [nearbyDeliveries, setNearbyDeliveries] = useState([]);
   const [activeDelivery, setActiveDelivery] = useState(null);
   //const [userLocation, setUserLocation] = useState({ latitude: 6.6993360, longitude: 79.9109078 }); //home
@@ -170,6 +170,86 @@ useEffect(() => {
   //     setMapCenter([simulatedUserLocation.latitude, simulatedUserLocation.longitude]);
   //   }, 1000);
   // }, []);
+
+  // Replace the useEffect that loads dummy data with this:
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Get user's current location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+              setUserLocation({ latitude, longitude });
+              setMapCenter([latitude, longitude]);
+              
+              // Check if rider has an active delivery
+              if (currentUser && currentUser.user_id) {
+                try {
+                  console.log("Checking for active delivery for rider:", currentUser.user_id);
+                  const activeDelivery = await api.getActiveDelivery(currentUser.user_id);
+                  console.log("Active delivery response:", activeDelivery);
+                  
+                  if (activeDelivery && activeDelivery.delivery_id) {
+                    console.log("Found active delivery:", activeDelivery);
+                    setActiveDelivery(activeDelivery);
+                    
+                    // Set map center based on delivery status
+                    if (activeDelivery.status === 'accepted') {
+                      setMapCenter([activeDelivery.restaurant_location.latitude, activeDelivery.restaurant_location.longitude]);
+                    } else if (activeDelivery.status === 'collected') {
+                      setMapCenter([activeDelivery.customer_location.latitude, activeDelivery.customer_location.longitude]);
+                    }
+                    
+                    // Join the delivery tracking room for real-time updates
+                    joinDeliveryTracking(activeDelivery.delivery_id);
+                  } else {
+                    console.log("No active delivery found, fetching nearby deliveries");
+                    // Fetch nearby deliveries if no active delivery
+                    const nearbyDeliveries = await api.getNearbyDeliveries(longitude, latitude);
+                    console.log('Nearby Deliveries:', nearbyDeliveries);
+                    setNearbyDeliveries(nearbyDeliveries);
+                  }
+                } catch (error) {
+                  console.error("Error checking for active delivery:", error);
+                  // Fallback to nearby deliveries if there's an error
+                  const nearbyDeliveries = await api.getNearbyDeliveries(longitude, latitude);
+                  console.log('Nearby Deliveries (fallback):', nearbyDeliveries);
+                  setNearbyDeliveries(nearbyDeliveries);
+                }
+              } else {
+                console.log("No current user, fetching nearby deliveries");
+                // No user ID, just fetch nearby deliveries
+                const nearbyDeliveries = await api.getNearbyDeliveries(longitude, latitude);
+                console.log('Nearby Deliveries:', nearbyDeliveries);
+                setNearbyDeliveries(nearbyDeliveries);
+              }
+              
+              setLoading(false);
+            },
+            (error) => {
+              console.error('Geolocation error:', error);
+              setError('Unable to get your location. Please enable location services.');
+              setLoading(false);
+            }
+          );
+        } else {
+          setError('Geolocation is not supported by your browser');
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load delivery data');
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [currentUser]);
+  
+
 
   // Get user's location (real implementation)
   useEffect(() => {
@@ -287,51 +367,109 @@ useEffect(() => {
   };
 
   // Mock API calls with dummy data
-  const handleAcceptDelivery = async (deliveryId) => {
-    try {
-      // Find the delivery in our dummy data
-      const delivery = nearbyDeliveries.find(d => d.delivery_id === deliveryId);
-      if (!delivery) throw new Error("Delivery not found");
+  // const handleAcceptDelivery = async (deliveryId) => {
+  //   try {
+  //     // Find the delivery in our dummy data
+  //     const delivery = nearbyDeliveries.find(d => d.delivery_id === deliveryId);
+  //     if (!delivery) throw new Error("Delivery not found");
       
-      // Update its status
-      const result = {
-        ...delivery,
-        status: 'accepted'
-      };
+  //     // Update its status
+  //     const result = {
+  //       ...delivery,
+  //       status: 'accepted'
+  //     };
       
+  //     setActiveDelivery(result);
+  //     setNearbyDeliveries(nearbyDeliveries.filter(d => d.delivery_id !== deliveryId));
+  //     setMapCenter([result.restaurant_location.latitude, result.restaurant_location.longitude]);
+  //   } catch (err) {
+  //     console.error("Error accepting delivery:", err);
+  //     setError("Failed to accept delivery.");
+  //   }
+  // };
+
+  // const handleUpdateStatus = async (status) => {
+  //   try {
+  //     if (!activeDelivery) throw new Error("No active delivery");
+      
+  //     const result = {
+  //       ...activeDelivery,
+  //       status: status
+  //     };
+      
+  //     setActiveDelivery(result);
+      
+  //     if (status === 'collected') {
+  //       setMapCenter([result.customer_location.latitude, result.customer_location.longitude]);
+  //     } else if (status === 'delivered') {
+  //       setActiveDelivery(null);
+  //       setRouteToDestination(null);
+  //       setEstimatedTime(null);
+  //       setEstimatedDistance(null);
+  //     }
+  //   } catch (err) {
+  //     console.error(`Error updating status to ${status}:`, err);
+  //     setError(`Failed to update delivery status to ${status}.`);
+  //   }
+  // };
+
+  // Replace handleAcceptDelivery with this:
+const handleAcceptDelivery = async (deliveryId) => {
+  try {
+    //const result = await api.acceptDelivery(deliveryId, currentUser.user_id);
+    const result = await api.acceptDelivery(deliveryId, currentUser.user_id);
+    
+    if (result) {
       setActiveDelivery(result);
       setNearbyDeliveries(nearbyDeliveries.filter(d => d.delivery_id !== deliveryId));
       setMapCenter([result.restaurant_location.latitude, result.restaurant_location.longitude]);
-    } catch (err) {
-      console.error("Error accepting delivery:", err);
-      setError("Failed to accept delivery.");
+      
+      // Join the delivery tracking room
+      joinDeliveryTracking(result.delivery_id);
     }
-  };
+  } catch (err) {
+    console.error("Error accepting delivery:", err);
+    setError("Failed to accept delivery.");
+  }
+};
 
-  const handleUpdateStatus = async (status) => {
-    try {
-      if (!activeDelivery) throw new Error("No active delivery");
-      
-      const result = {
-        ...activeDelivery,
-        status: status
-      };
-      
+// Replace handleUpdateStatus with this:
+const handleUpdateStatus = async (status) => {
+  try {
+    if (!activeDelivery) throw new Error("No active delivery");
+    
+    const result = await api.updateDeliveryStatus(activeDelivery.delivery_id, status);
+    
+    if (result) {
       setActiveDelivery(result);
       
       if (status === 'collected') {
         setMapCenter([result.customer_location.latitude, result.customer_location.longitude]);
       } else if (status === 'delivered') {
+        // Leave the delivery tracking room
+        leaveDeliveryTracking(activeDelivery.delivery_id);
+        
         setActiveDelivery(null);
         setRouteToDestination(null);
         setEstimatedTime(null);
         setEstimatedDistance(null);
+        
+        // Fetch nearby deliveries again
+        if (userLocation) {
+          const nearbyDeliveries = await api.getNearbyDeliveries(
+            userLocation.longitude, 
+            userLocation.latitude
+          );
+          setNearbyDeliveries(nearbyDeliveries);
+        }
       }
-    } catch (err) {
-      console.error(`Error updating status to ${status}:`, err);
-      setError(`Failed to update delivery status to ${status}.`);
     }
-  };
+  } catch (err) {
+    console.error(`Error updating status to ${status}:`, err);
+    setError(`Failed to update delivery status to ${status}.`);
+  }
+};
+
 
   // Function to open navigation in Google Maps
   const openNavigation = (destination) => {
@@ -373,6 +511,7 @@ useEffect(() => {
                 {/* User location marker */}
                 <Marker 
                   position={[userLocation.latitude, userLocation.longitude]}
+                  icon={riderIcon}
                 >
                   <Popup>You are here</Popup>
                 </Marker>
@@ -385,6 +524,7 @@ useEffect(() => {
                         activeDelivery.restaurant_location.latitude, 
                         activeDelivery.restaurant_location.longitude
                       ]}
+                      icon={restaurantIcon}
                     >
                       <Popup>Restaurant Location</Popup>
                     </Marker>
@@ -394,6 +534,7 @@ useEffect(() => {
                         activeDelivery.customer_location.latitude, 
                         activeDelivery.customer_location.longitude
                       ]}
+                      icon={customerIcon}
                     >
                       <Popup>Customer Location</Popup>
                     </Marker>

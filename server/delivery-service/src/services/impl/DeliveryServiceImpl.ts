@@ -200,14 +200,38 @@ export class DeliveryService implements IDeliveryService {
   
   // Helper method to find available riders near a location
   // In a real implementation, this would call the User service
-  private async findAvailableRidersNear(latitude: number, longitude: number, maxDistance: number = 5000): Promise<any[]> {
-    // Simulate getting riders from User service
-    // In production, this would be a microservice call
+  // Modify the findAvailableRidersNear method to fetch real riders
+private async findAvailableRidersNear(latitude: number, longitude: number, maxDistance: number = 5000): Promise<any[]> {
+  try {
+    // In a real implementation, this would call the User service
+    // Make an HTTP request to the User service to get available riders
+    const response = await fetch(`${process.env.USER_SERVICE_URL || 'http://localhost:5000'}/api/users/riders/available`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        latitude,
+        longitude,
+        maxDistance
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch available riders');
+    }
+    
+    const riders = await response.json() as any[];
+    return riders;
+  } catch (error) {
+    logger.error({ error }, 'Error fetching available riders');
+    // Fallback to dummy data if the service is unavailable
     return [
       { user_id: 'R001', name: 'John Rider', latitude: latitude + 0.01, longitude: longitude - 0.01 },
       { user_id: 'R002', name: 'Alice Driver', latitude: latitude - 0.005, longitude: longitude + 0.008 }
     ];
   }
+}
   
   // Helper method to find the closest rider
   private findClosestRider(riders: any[], targetLat: number, targetLon: number): any {

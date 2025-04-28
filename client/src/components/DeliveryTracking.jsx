@@ -1,11 +1,13 @@
 // client/src/components/DeliveryTracking.jsx
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { api } from '../utils/fetchapi';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { 
-  initSocket, 
+  initSocket,
+  getSocket, 
   joinDeliveryTracking, 
   leaveDeliveryTracking,
   onDeliveryLocationUpdate,
@@ -21,7 +23,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const restaurantIcon = new L.Icon({
-  iconUrl: '/restaurant-marker.png',
+  iconUrl: '/restaurant.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -29,7 +31,7 @@ const restaurantIcon = new L.Icon({
 });
 
 const customerIcon = new L.Icon({
-  iconUrl: '/customer-marker.png',
+  iconUrl: '/customer.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -37,7 +39,7 @@ const customerIcon = new L.Icon({
 });
 
 const riderIcon = new L.Icon({
-  iconUrl: '/rider-marker.png',
+  iconUrl: '/delivery.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -53,7 +55,8 @@ function MapCenterSetter({ center }) {
   return null;
 }
 
-const DeliveryTracking = ({ deliveryId }) => {
+const DeliveryTracking = () => {
+  const { deliveryId } = useParams();
   const [delivery, setDelivery] = useState(null);
   const [riderLocation, setRiderLocation] = useState(null);
   const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]); // Default to Sri Lanka center
@@ -71,6 +74,7 @@ const DeliveryTracking = ({ deliveryId }) => {
     // Fetch delivery details
     const fetchDelivery = async () => {
       try {
+        console.log('Fetching delivery details for deliveryId:', deliveryId);
         const data = await api.trackDelivery(deliveryId);
         setDelivery(data);
         
@@ -125,6 +129,27 @@ const DeliveryTracking = ({ deliveryId }) => {
         // Leave the delivery tracking room when component unmounts
         leaveDeliveryTracking(deliveryId);
         offDeliveryLocationUpdate();
+      };
+    }
+  }, [delivery, deliveryId]);
+
+  useEffect(() => {
+    if (delivery) {
+      // Set up listener for status updates
+      const socket = getSocket();
+      
+      socket.on('delivery:status_updated', (data) => {
+        if (data.deliveryId === deliveryId) {
+          setDelivery(prev => ({
+            ...prev,
+            status: data.status,
+            updated_at: data.timestamp
+          }));
+        }
+      });
+      
+      return () => {
+        socket.off('delivery:status_updated');
       };
     }
   }, [delivery, deliveryId]);

@@ -31,4 +31,12 @@ deliveryRouter.post('/:id/auto-assign', controller.autoAssignRider);
 // Update rider location
 deliveryRouter.put('/:id/location', controller.updateRiderLocation);
 
+// Add this endpoint for delivery tracking
+deliveryRouter.get('/:id/track', controller.trackDelivery);
+
+// Get active delivery for a rider
+deliveryRouter.get('/rider/:riderId/active', controller.getActiveDeliveryForRider);
+
+deliveryRouter.post('/test-order', controller.createTestOrder);
+
 export default deliveryRouter;

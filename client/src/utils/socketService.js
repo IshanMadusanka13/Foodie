@@ -5,11 +5,15 @@ let socket = null;
 
 export const initSocket = (url) => {
   if (!socket) {
-    socket = io(url);
-    console.log('Socket initialized');
+    // Use the correct delivery service URL with socket.io path
+    socket = io(import.meta.env.VITE_DELIVERY_SERVICE_URL || 'http://localhost:5005', {
+      path: '/socket.io/'
+    });
+    console.log('Socket initialized with URL:', import.meta.env.VITE_DELIVERY_SERVICE_URL || 'http://localhost:5005');
   }
   return socket;
 };
+
 
 export const getSocket = () => {
   if (!socket) {
