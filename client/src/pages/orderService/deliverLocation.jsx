@@ -118,6 +118,25 @@ const DeliverLocation = () => {
 
         setOrderDetails({
             ...orderDetails,
+            customerLocation: {
+                latitude: position.lat,
+                longitude: position.lng
+            },
+            deliveryDistance: calculateDistance(
+                { lat: 40.7484, lng: -73.9857 },
+                position
+            ).toFixed(2),
+            deliveryAddress: address,
+            deliveryAddressNote: addressNote,
+            deliveryLocation: position,
+        });
+
+        console.log({
+            ...orderDetails,
+            customerLocation: {
+                latitude: position.lat,
+                longitude: position.lng
+            },
             deliveryDistance: calculateDistance(
                 { lat: 40.7484, lng: -73.9857 },
                 position
@@ -130,6 +149,10 @@ const DeliverLocation = () => {
 
         localStorage.setItem("orderDetails", JSON.stringify({
             ...orderDetails,
+            customerLocation: {
+                latitude: position.lat,
+                longitude: position.lng
+            },
             deliveryDistance: calculateDistance(
                 { lat: 40.7484, lng: -73.9857 },
                 position

@@ -40,9 +40,13 @@ const Order = () => {
       setIsLoading(false);
       setOrderComplete(true);
 
+      console.log(orderDetails.customerLocation)
+
       api.createOrder({
         customer: currentUser?.user_id,
-        restaurant: orderDetails.restaurantName,
+        restaurant: orderDetails.restaurantId,
+        restaurantLocation: orderDetails.restaurantLocation,
+        customerLocation: orderDetails.customerLocation,
         items: orderDetails.items,
         paymentMethod,
         orderAmount: subtotal,
@@ -52,7 +56,9 @@ const Order = () => {
 
       console.log('Order submitted:', {
         customer: currentUser?.user_id,
-        restaurant: orderDetails.restaurantName,
+        restaurant: orderDetails.restaurantId,
+        restaurantLocation: orderDetails.restaurantLocation,
+        customerLocation: orderDetails.customerLocation,
         items: orderDetails.items,
         paymentMethod,
         orderAmount: subtotal,

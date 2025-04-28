@@ -24,7 +24,7 @@ const fetchApi = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${endpoint}`, config);
-         console.log('API Request:', { endpoint, options });
+         //console.log('API Request:', { endpoint, options });
         // console.log('API Response:', response);
 
         if (response.status === 401) {

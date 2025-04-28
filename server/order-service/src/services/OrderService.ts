@@ -1,7 +1,7 @@
-import { IOrder } from '../models/Order';
+import { IOrder, IOrderCreate } from '../models/Order';
 
 export interface IOrderService {
-  createOrder(order: IOrder): Promise<IOrder>;
+  createOrder(order: IOrderCreate): Promise<IOrder>;
   updateOrder(orderId: string, order: Partial<IOrder>): Promise<IOrder | null>;
   deleteOrder(orderId: string): Promise<boolean>;
   getOrderById(orderId: string): Promise<IOrder | null>;
