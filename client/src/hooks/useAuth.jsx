@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({
-    user_id: 'R001',
+    user_id: 'R002',
     name: 'John Rider',
     email: 'john.rider@example.com',
     phone: '+94 77 123 4567',

@@ -1,20 +1,18 @@
-// client/src/components/DeliveryTracking.jsx
+// EnhancedDeliveryTracking.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../utils/fetchapi';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { 
-  initSocket,
-  getSocket, 
-  joinDeliveryTracking, 
-  leaveDeliveryTracking,
-  onDeliveryLocationUpdate,
-  offDeliveryLocationUpdate
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  initSocket, getSocket,
+  joinDeliveryTracking, leaveDeliveryTracking,
+  onDeliveryLocationUpdate, offDeliveryLocationUpdate
 } from '../utils/socketService';
 
-// Fix for Leaflet marker icons
+// Leaflet marker icons setup (same as your original)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -46,7 +44,7 @@ const riderIcon = new L.Icon({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
 });
 
-// Component to recenter map
+// Map center setter
 function MapCenterSetter({ center }) {
   const map = useMap();
   useEffect(() => {
@@ -55,95 +53,88 @@ function MapCenterSetter({ center }) {
   return null;
 }
 
+const statusSteps = [
+  { label: "Accepted", key: "accepted" },
+  { label: "Collected", key: "collected" },
+  { label: "Delivered", key: "delivered" }
+];
+
+const statusColors = {
+  accepted: "bg-blue-500",
+  collected: "bg-orange-500",
+  delivered: "bg-green-500"
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: "easeOut" } }
+};
+
+const progressVariants = {
+  hidden: { width: 0 },
+  visible: i => ({
+    width: `${i * 50}%`,
+    transition: { duration: 0.7, delay: i * 0.2 }
+  })
+};
+
 const DeliveryTracking = () => {
   const { deliveryId } = useParams();
   const [delivery, setDelivery] = useState(null);
   const [riderLocation, setRiderLocation] = useState(null);
-  const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]); // Default to Sri Lanka center
+  const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [routeToDestination, setRouteToDestination] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [estimatedDistance, setEstimatedDistance] = useState(null);
 
-  // Initialize socket and fetch delivery data
+  // Fetch delivery and set up socket
   useEffect(() => {
-    console.log('Initializing socket and fetching delivery data for ID:', deliveryId);
-    // Initialize socket connection
     initSocket();
-    
-    // Fetch delivery details
     const fetchDelivery = async () => {
       try {
-        console.log('Fetching delivery details for deliveryId:', deliveryId);
         const data = await api.trackDelivery(deliveryId);
-        console.log('Received delivery data:', data);
         setDelivery(data);
-        
-        // Set map center to restaurant location initially
         if (data.restaurant_location) {
           setMapCenter([data.restaurant_location.latitude, data.restaurant_location.longitude]);
         }
-        
         setLoading(false);
-      } catch (err) {
-        console.error('Error fetching delivery details:', err);
+      } catch {
         setError('Failed to load delivery details');
         setLoading(false);
       }
     };
-    
     fetchDelivery();
-    
-    return () => {
-      // Clean up socket listeners
-      offDeliveryLocationUpdate();
-    };
+    return () => offDeliveryLocationUpdate();
   }, [deliveryId]);
 
-  // Join delivery tracking room and listen for updates
   useEffect(() => {
     if (delivery) {
-      console.log(`Joining delivery tracking room for delivery: ${deliveryId}`);
-      // Join the delivery tracking room
       joinDeliveryTracking(deliveryId);
-      
-      // Set up listener for location updates
       onDeliveryLocationUpdate((data) => {
-        console.log('Received location update:', data);
         if (data.deliveryId === deliveryId) {
           const updatedLocation = {
             latitude: data.location.latitude,
             longitude: data.location.longitude
           };
-          
           setRiderLocation(updatedLocation);
-          
-          // Update route
           if (delivery.status === 'accepted' || delivery.status === 'collected') {
-            const destination = delivery.status === 'accepted' 
-              ? delivery.restaurant_location 
+            const destination = delivery.status === 'accepted'
+              ? delivery.restaurant_location
               : delivery.customer_location;
-            
             updateRouteToDestination(updatedLocation, destination);
           }
         }
       });
-      
-      // Set up listener for status updates
       const socket = getSocket();
-      
       socket.on('delivery:status_updated', (data) => {
-        console.log('Received status update:', data);
         if (data.deliveryId === deliveryId) {
-          console.log(`Updating delivery status to: ${data.status}`);
           setDelivery(prev => ({
             ...prev,
             status: data.status,
             updated_at: data.timestamp
           }));
-          
-          // Update map center based on new status
           if (data.status === 'accepted' && delivery.restaurant_location) {
             setMapCenter([delivery.restaurant_location.latitude, delivery.restaurant_location.longitude]);
           } else if (data.status === 'collected' && delivery.customer_location) {
@@ -151,10 +142,7 @@ const DeliveryTracking = () => {
           }
         }
       });
-      
       return () => {
-        // Leave the delivery tracking room when component unmounts
-        console.log(`Leaving delivery tracking room for delivery: ${deliveryId}`);
         leaveDeliveryTracking(deliveryId);
         offDeliveryLocationUpdate();
         socket.off('delivery:status_updated');
@@ -162,130 +150,139 @@ const DeliveryTracking = () => {
     }
   }, [delivery, deliveryId]);
 
-  // Function to update the route
+  // Route calculation
   const updateRouteToDestination = (origin, destination) => {
     try {
-      // For simplicity, we'll just draw a straight line
       const routePoints = [
         [origin.latitude, origin.longitude],
         [destination.latitude, destination.longitude]
       ];
-      
       setRouteToDestination(routePoints);
-      
-      // Calculate estimated time and distance
       const distance = calculateDistance(
-        origin.latitude, 
-        origin.longitude, 
-        destination.latitude, 
-        destination.longitude
+        origin.latitude, origin.longitude,
+        destination.latitude, destination.longitude
       );
-      
       setEstimatedDistance(distance);
-      
-      // Rough estimate: assume 30 km/h average speed
       const timeInHours = distance / 30;
-      const timeInMinutes = Math.round(timeInHours * 60);
-      setEstimatedTime(timeInMinutes);
-      
-    } catch (err) {
-      console.error("Error updating route:", err);
-    }
+      setEstimatedTime(Math.round(timeInHours * 60));
+    } catch {}
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center py-8">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-    </div>;
+    return (
+      <div className="flex justify-center items-center py-16">
+        <motion.div
+          className="rounded-full h-12 w-12 border-b-4 border-blue-500"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+        />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-      {error}
-    </div>;
+    return (
+      <motion.div
+        className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg my-8 mx-auto max-w-lg"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {error}
+      </motion.div>
+    );
   }
 
   if (!delivery) {
-    return <div className="text-center py-8">
-      <p className="text-gray-600">Delivery not found.</p>
-    </div>;
+    return (
+      <div className="text-center py-16">
+        <p className="text-gray-500">Delivery not found.</p>
+      </div>
+    );
   }
 
+  // Status step index
+  const currentStep = statusSteps.findIndex(s => s.key === delivery.status);
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="p-4 border-b">
-        <h2 className="text-xl font-semibold">Delivery Tracking</h2>
-        <p className="text-gray-600">Order ID: {delivery.order_id}</p>
-        <p className="text-gray-600">Status: 
-          <span className={`ml-2 font-semibold ${
-            delivery.status === 'accepted' ? 'text-blue-600' : 
-            delivery.status === 'collected' ? 'text-orange-600' : 
-            delivery.status === 'delivered' ? 'text-green-600' :
-            'text-gray-600'
-          }`}>
-            {delivery.status.charAt(0).toUpperCase() + delivery.status.slice(1)}
+    <motion.div
+      className="bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden max-w-2xl mx-auto my-10 border border-gray-200"
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="p-6 border-b border-gray-100"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
+      >
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+          <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-tr from-blue-500 to-green-400 animate-pulse"></span>
+          Delivery Tracking
+        </h2>
+        <div className="flex flex-wrap gap-4 mt-2">
+          <span className="text-gray-500">Order ID: <span className="font-semibold">{delivery.order_id}</span></span>
+          <span className="text-gray-500">Status:
+            <span className={`ml-2 font-semibold ${statusColors[delivery.status] || "text-gray-600"}`}>
+              {delivery.status.charAt(0).toUpperCase() + delivery.status.slice(1)}
+            </span>
           </span>
-        </p>
-        
-        {estimatedDistance && (
-          <p className="text-gray-600 mt-2">
-            Distance: {estimatedDistance.toFixed(1)} km
-          </p>
-        )}
-        
-        {estimatedTime && (
-          <p className="text-gray-600">
-            Est. Time: {estimatedTime} min
-          </p>
-        )}
-      </div>
-      
-      <div className="h-[400px]">
-        <MapContainer 
-          center={mapCenter} 
-          zoom={13} 
+        </div>
+        <div className="flex gap-6 mt-2">
+          {estimatedDistance && (
+            <span className="text-gray-600">
+              <span className="font-semibold">{estimatedDistance.toFixed(1)} km</span> distance
+            </span>
+          )}
+          {estimatedTime && (
+            <span className="text-gray-600">
+              <span className="font-semibold">{estimatedTime}</span> min ETA
+            </span>
+          )}
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="h-[350px] bg-gradient-to-br from-blue-50 via-white to-green-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, transition: { delay: 0.3 } }}
+      >
+        <MapContainer
+          center={mapCenter}
+          zoom={13}
           style={{ height: '100%', width: '100%' }}
+          className="rounded-b-3xl"
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; OpenStreetMap contributors'
           />
-          
-          {/* Restaurant marker */}
-          <Marker 
+          <Marker
             position={[
-              delivery.restaurant_location.latitude, 
+              delivery.restaurant_location.latitude,
               delivery.restaurant_location.longitude
             ]}
             icon={restaurantIcon}
           >
             <Popup>Restaurant Location</Popup>
           </Marker>
-          
-          {/* Customer marker */}
-          <Marker 
+          <Marker
             position={[
-              delivery.customer_location.latitude, 
+              delivery.customer_location.latitude,
               delivery.customer_location.longitude
             ]}
             icon={customerIcon}
           >
             <Popup>Your Location</Popup>
           </Marker>
-          
-          {/* Rider marker */}
           {riderLocation && (
-            <Marker 
+            <Marker
               position={[riderLocation.latitude, riderLocation.longitude]}
               icon={riderIcon}
             >
               <Popup>Rider Location</Popup>
             </Marker>
           )}
-          
-          {/* Route line */}
           {routeToDestination && (
-            <Polyline 
+            <Polyline
               positions={routeToDestination}
               color={delivery.status === 'accepted' ? 'blue' : 'green'}
               weight={4}
@@ -293,68 +290,67 @@ const DeliveryTracking = () => {
               dashArray={delivery.status === 'accepted' ? '10, 10' : ''}
             />
           )}
-          
           <MapCenterSetter center={mapCenter} />
         </MapContainer>
-      </div>
-      
-      <div className="p-4 bg-gray-50">
-        <h3 className="font-medium text-gray-800 mb-2">Delivery Status</h3>
-        <div className="flex items-center">
-          <div className="relative">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              ['accepted', 'collected', 'delivered'].includes(delivery.status) 
-                ? 'bg-green-500' : 'bg-gray-300'
-            }`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z" />
-              </svg>
+      </motion.div>
+
+      {/* Animated Progress Bar */}
+      <motion.div className="p-6 bg-gradient-to-r from-white via-gray-50 to-white">
+        <h3 className="font-medium text-gray-800 mb-4">Delivery Status</h3>
+        <div className="flex items-center justify-between relative">
+          {statusSteps.map((step, i) => (
+            <div className="flex-1 flex flex-col items-center" key={step.key}>
+              <motion.div
+                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg
+                  ${i <= currentStep ? 'bg-gradient-to-tr from-blue-400 to-green-400 text-white' : 'bg-gray-200 text-gray-400'}
+                  border-4 border-white`}
+                initial={{ scale: 0.7, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1, transition: { delay: 0.4 + i * 0.15 } }}
+                whileHover={{ scale: 1.1 }}
+              >
+                {/* Custom icons for each step */}
+                {i === 0 && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+                {i === 1 && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 3v3m0 12v3m9-9h-3M6 12H3m15.364-6.364l-2.121 2.121M6.343 17.657l-2.121 2.121m12.728 0l2.121-2.121M6.343 6.343L4.222 4.222"/>
+                  </svg>
+                )}
+                {i === 2 && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 8v4l3 3"/>
+                  </svg>
+                )}
+              </motion.div>
+              <span className={`mt-2 text-xs font-medium ${i <= currentStep ? 'text-blue-600' : 'text-gray-400'}`}>
+                {step.label}
+              </span>
+              {/* Progress bar between steps */}
+              {i < statusSteps.length - 1 && (
+                <motion.div
+                  className="absolute top-1/2 left-1/2 h-1 bg-gradient-to-r from-blue-400 to-green-400 rounded"
+                  style={{
+                    width: '50%',
+                    left: 'calc(50% + 20px)',
+                    zIndex: -1,
+                    transform: `translateY(-50%)`
+                  }}
+                  initial="hidden"
+                  animate={i < currentStep ? "visible" : "hidden"}
+                  custom={i + 1}
+                  variants={progressVariants}
+                />
+              )}
             </div>
-            <div className="absolute top-0 left-8 h-1 w-16 bg-gray-300">
-              <div className={`h-full ${
-                ['collected', 'delivered'].includes(delivery.status) 
-                  ? 'bg-green-500' : 'bg-gray-300'
-              }`}></div>
-            </div>
-          </div>
-          
-          <div className="relative ml-16">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              ['collected', 'delivered'].includes(delivery.status) 
-                ? 'bg-green-500' : 'bg-gray-300'
-            }`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-              </svg>
-            </div>
-            <div className="absolute top-0 left-8 h-1 w-16 bg-gray-300">
-            <div className={`h-full ${
-                delivery.status === 'delivered' 
-                  ? 'bg-green-500' : 'bg-gray-300'
-              }`}></div>
-            </div>
-          </div>
-          
-          <div className="ml-16">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              delivery.status === 'delivered' 
-                ? 'bg-green-500' : 'bg-gray-300'
-            }`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
+          ))}
         </div>
-        <div className="flex text-xs text-gray-500 mt-1">
-          <span className="w-8 text-center">Accepted</span>
-          <span className="w-24 text-center">Collected</span>
-          <span className="w-24 text-center">Delivered</span>
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -363,18 +359,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
-  const a = 
+  const a =
     Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2); 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  const distance = R * c; // Distance in km
-  return distance;
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
 }
-
 function deg2rad(deg) {
   return deg * (Math.PI/180);
 }
 
 export default DeliveryTracking;
-

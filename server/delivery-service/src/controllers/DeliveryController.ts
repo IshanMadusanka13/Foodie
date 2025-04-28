@@ -257,5 +257,21 @@ export class DeliveryController {
       res.status(500).json({ message: err.message });
     }
   };
+
+  getDeliveryByOrderId = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { orderId } = req.params;
+      const delivery = await deliveryService.getDeliveryByOrderId(orderId);
+      
+      if (!delivery) {
+        res.status(404).json({ message: 'No delivery found for this order' });
+      } else {
+        res.json(delivery);
+      }
+    } catch (err: any) {
+      logger.error({ err }, 'Error in getDeliveryByOrderId controller');
+      res.status(500).json({ message: err.message });
+    }
+  };
   
 }

@@ -271,4 +271,20 @@ private async findAvailableRidersNear(latitude: number, longitude: number, maxDi
 
     return R * c; // Distance in meters
   }
+
+  async getDeliveryByOrderId(orderId: string): Promise<IDelivery | null> {
+    logger.info({ orderId }, 'Fetching delivery by order ID');
+    try {
+      const delivery = await Delivery.findOne({ order_id: orderId });
+      if (delivery) {
+        logger.info('Delivery found for order');
+      } else {
+        logger.warn('No delivery found for this order');
+      }
+      return delivery;
+    } catch (error) {
+      logger.error({ error, orderId }, 'Error fetching delivery by order ID');
+      throw error;
+    }
+  }
 }

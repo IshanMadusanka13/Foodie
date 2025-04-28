@@ -9,4 +9,5 @@ export interface IDeliveryService {
   updateDeliveryStatus(deliveryId: string, status: string, timestamp?: Date): Promise<IDelivery | null>;
   getDeliveriesByRider(riderId: string): Promise<IDelivery[]>;
   generateDeliveryId(): Promise<string>;
+  getDeliveryByOrderId(orderId: string): Promise<IDelivery | null>;
 }
