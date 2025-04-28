@@ -140,6 +140,9 @@ export const api = {
     trackDelivery: (deliveryId) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/track`),
 
+    // Add this method to the api object in fetchapi.js
+    getDeliveryByOrderId: (orderId) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/order/${orderId}`),
 
 };
 

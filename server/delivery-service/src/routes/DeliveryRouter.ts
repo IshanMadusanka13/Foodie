@@ -37,6 +37,10 @@ deliveryRouter.get('/:id/track', controller.trackDelivery);
 // Get active delivery for a rider
 deliveryRouter.get('/rider/:riderId/active', controller.getActiveDeliveryForRider);
 
+// create test order
 deliveryRouter.post('/test-order', controller.createTestOrder);
+
+// Get delivery by order ID
+deliveryRouter.get('/order/:orderId', controller.getDeliveryByOrderId);
 
 export default deliveryRouter;
