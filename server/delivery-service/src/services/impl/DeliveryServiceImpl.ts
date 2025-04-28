@@ -160,6 +160,78 @@ export class DeliveryService implements IDeliveryService {
     }
   }
 
+  async autoAssignRider(deliveryId: string): Promise<IDelivery | null> {
+    logger.info({ deliveryId }, 'Auto-assigning rider to delivery');
+    try {
+      // 1. Get the delivery details
+      const delivery = await this.getDeliveryById(deliveryId);
+      if (!delivery || delivery.status !== 'pending') {
+        logger.warn('Delivery not found or not in pending status');
+        return null;
+      }
+  
+      // 2. Find available riders within a reasonable distance
+      // This would require a User service call to get riders
+      // For now, we'll simulate with a direct DB query
+      const availableRiders = await this.findAvailableRidersNear(
+        delivery.restaurant_location.latitude,
+        delivery.restaurant_location.longitude
+      );
+  
+      if (availableRiders.length === 0) {
+        logger.warn('No available riders found nearby');
+        return null;
+      }
+  
+      // 3. Select the closest rider
+      const closestRider = this.findClosestRider(
+        availableRiders,
+        delivery.restaurant_location.latitude,
+        delivery.restaurant_location.longitude
+      );
+  
+      // 4. Assign the delivery to the rider
+      return await this.acceptDelivery(deliveryId, closestRider.user_id);
+    } catch (error) {
+      logger.error({ error, deliveryId }, 'Error auto-assigning rider');
+      throw error;
+    }
+  }
+  
+  // Helper method to find available riders near a location
+  // In a real implementation, this would call the User service
+  private async findAvailableRidersNear(latitude: number, longitude: number, maxDistance: number = 5000): Promise<any[]> {
+    // Simulate getting riders from User service
+    // In production, this would be a microservice call
+    return [
+      { user_id: 'R001', name: 'John Rider', latitude: latitude + 0.01, longitude: longitude - 0.01 },
+      { user_id: 'R002', name: 'Alice Driver', latitude: latitude - 0.005, longitude: longitude + 0.008 }
+    ];
+  }
+  
+  // Helper method to find the closest rider
+  private findClosestRider(riders: any[], targetLat: number, targetLon: number): any {
+    let closestRider = riders[0];
+    let minDistance = this.calculateDistance(
+      targetLat, targetLon, 
+      riders[0].latitude, riders[0].longitude
+    );
+  
+    for (let i = 1; i < riders.length; i++) {
+      const distance = this.calculateDistance(
+        targetLat, targetLon,
+        riders[i].latitude, riders[i].longitude
+      );
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestRider = riders[i];
+      }
+    }
+  
+    return closestRider;
+  }
+
   // Helper method to calculate distance between two points using Haversine formula
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371e3; // Earth's radius in meters

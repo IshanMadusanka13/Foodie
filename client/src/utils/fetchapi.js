@@ -98,6 +98,20 @@ export const api = {
             body: JSON.stringify({ status })
         }),
 
+    // Add to api object in fetchapi.js
+    updateRiderLocation: (deliveryId, latitude, longitude) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/location`, {
+            method: 'PUT',
+            body: JSON.stringify({ latitude, longitude })
+        }),
+
+    getActiveDelivery: (riderId) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/rider/${riderId}/active`),
+
+    trackDelivery: (deliveryId) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/track`),
+
+
 };
 
 export default api;

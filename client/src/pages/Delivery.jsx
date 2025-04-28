@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../utils/fetchapi';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { 
+  initSocket, 
+  getSocket, 
+  joinDeliveryTracking, 
+  leaveDeliveryTracking,
+  updateRiderLocation,
+  onDeliveryLocationUpdate,
+  offDeliveryLocationUpdate
+} from '../utils/socketService';
 
 // Fix for Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -62,7 +71,7 @@ const Delivery = () => {
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [estimatedDistance, setEstimatedDistance] = useState(null);
 
- 
+  
   
   // Dummy data for nearby deliveries
   const dummyNearbyDeliveries = [
@@ -98,29 +107,74 @@ const Delivery = () => {
     }
   ];
 
-  // Initialize with dummy data
-  useEffect(() => {
-    // Uncomment one of these to test different states
-    //setActiveDelivery(dummyActiveDelivery);
-    // setActiveDelivery({...dummyActiveDelivery, status: 'collected'}); // To test collected state
-    setNearbyDeliveries(dummyNearbyDeliveries);
-    setLoading(false);
+  // Initialize socket in the component
+useEffect(() => {
+  // Initialize socket connection
+  initSocket('http://localhost:5005'); // Use your delivery service URL
+  
+  return () => {
+    // Clean up socket connection
+    offDeliveryLocationUpdate();
+  };
+}, []);
+
+  // Add real-time location updates
+useEffect(() => {
+  if (activeDelivery) {
+    // Join the delivery tracking room
+    joinDeliveryTracking(activeDelivery.delivery_id);
     
-    // Simulate getting user location
-    setTimeout(() => {
-      const simulatedUserLocation = {
-        latitude: 7.8731 + (Math.random() * 0.01 - 0.005),
-        longitude: 80.7718 + (Math.random() * 0.01 - 0.005)
-      };
-      setUserLocation(simulatedUserLocation);
-      setMapCenter([simulatedUserLocation.latitude, simulatedUserLocation.longitude]);
-    }, 1000);
-  }, []);
+    // Set up listener for location updates
+    onDeliveryLocationUpdate((data) => {
+      if (data.deliveryId === activeDelivery.delivery_id) {
+        // Update the route with the new location
+        const updatedLocation = {
+          latitude: data.location.latitude,
+          longitude: data.location.longitude
+        };
+        
+        setUserLocation(updatedLocation);
+        
+        // Update route
+        const destination = activeDelivery.status === 'accepted' 
+          ? activeDelivery.restaurant_location 
+          : activeDelivery.customer_location;
+        
+        updateRouteToDestination(updatedLocation, destination);
+      }
+    });
+    
+    return () => {
+      // Leave the delivery tracking room when component unmounts or delivery changes
+      leaveDeliveryTracking(activeDelivery.delivery_id);
+      offDeliveryLocationUpdate();
+    };
+  }
+}, [activeDelivery]);
+
+  // Initialize with dummy data
+  // useEffect(() => {
+  //   // Uncomment one of these to test different states
+  //   //setActiveDelivery(dummyActiveDelivery);
+  //   // setActiveDelivery({...dummyActiveDelivery, status: 'collected'}); // To test collected state
+  //   setNearbyDeliveries(dummyNearbyDeliveries);
+  //   setLoading(false);
+    
+  //   // Simulate getting user location
+  //   setTimeout(() => {
+  //     const simulatedUserLocation = {
+  //       latitude: 7.8731 + (Math.random() * 0.01 - 0.005),
+  //       longitude: 80.7718 + (Math.random() * 0.01 - 0.005)
+  //     };
+  //     setUserLocation(simulatedUserLocation);
+  //     setMapCenter([simulatedUserLocation.latitude, simulatedUserLocation.longitude]);
+  //   }, 1000);
+  // }, []);
 
   // Get user's location (real implementation)
   useEffect(() => {
-    if (navigator.geolocation) {
-      // Add options for better accuracy
+    // Only track location if we're a rider with an active delivery
+    if (navigator.geolocation && activeDelivery) {
       const options = {
         enableHighAccuracy: true,
         timeout: 5000,
@@ -131,53 +185,61 @@ const Delivery = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          console.log("Location obtained:", latitude, longitude);
           setUserLocation({ latitude, longitude });
           setMapCenter([latitude, longitude]);
+          
+          // Send initial location update via socket
+          if (activeDelivery) {
+            updateRiderLocation(activeDelivery.delivery_id, latitude, longitude);
+            
+            // Also update via API for persistence
+            api.updateRiderLocation(activeDelivery.delivery_id, latitude, longitude)
+              .catch(err => console.error('Error updating location via API:', err));
+          }
         },
         (error) => {
-          // More specific error messages based on error code
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              console.error("Location permission was denied");
-              // Continue with dummy location
-              break;
-            case error.POSITION_UNAVAILABLE:
-              console.error("Location information is unavailable");
-              // Continue with dummy location
-              break;
-            case error.TIMEOUT:
-              console.error("Request to get location timed out");
-              // Continue with dummy location
-              break;
-            default:
-              console.error(`An unknown error occurred: ${error.message}`);
-              // Continue with dummy location
-          }
+          console.error('Geolocation error:', error);
         },
         options
       );
       
-      // Simulate continuous location updates for testing
-      const intervalId = setInterval(() => {
-        const updatedLocation = {
-          latitude: userLocation.latitude + (Math.random() * 0.0002 - 0.0001),
-          longitude: userLocation.longitude + (Math.random() * 0.0002 - 0.0001)
-        };
-        setUserLocation(updatedLocation);
-        
-        // Update route if we have an active delivery
-        if (activeDelivery) {
-          updateRouteToDestination(
-            updatedLocation,
-            activeDelivery.status === 'accepted' 
-              ? activeDelivery.restaurant_location 
-              : activeDelivery.customer_location
-          );
-        }
-      }, 5000);
+      // Set up continuous location tracking
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ latitude, longitude });
+          
+          // Send location update via socket
+          if (activeDelivery) {
+            updateRiderLocation(activeDelivery.delivery_id, latitude, longitude);
+            
+            // Update API less frequently (every 10 seconds) to reduce load
+            if (Date.now() % 10000 < 1000) {
+              api.updateRiderLocation(activeDelivery.delivery_id, latitude, longitude)
+                .catch(err => console.error('Error updating location via API:', err));
+            }
+          }
+          
+          // Update route if we have an active delivery
+          if (activeDelivery) {
+            updateRouteToDestination(
+              { latitude, longitude },
+              activeDelivery.status === 'accepted' 
+                ? activeDelivery.restaurant_location 
+                : activeDelivery.customer_location
+            );
+          }
+        },
+        (error) => {
+          console.error('Geolocation watch error:', error);
+        },
+        options
+      );
       
-      return () => clearInterval(intervalId);
+      // Clean up
+      return () => {
+        navigator.geolocation.clearWatch(watchId);
+      };
     }
   }, [activeDelivery]);
 

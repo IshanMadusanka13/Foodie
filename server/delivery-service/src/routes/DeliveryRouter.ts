@@ -25,4 +25,10 @@ deliveryRouter.put('/:id/accept', controller.acceptDelivery);
 // Update delivery status
 deliveryRouter.put('/:id/status', controller.updateDeliveryStatus);
 
+// Auto-assign a rider to a delivery
+deliveryRouter.post('/:id/auto-assign', controller.autoAssignRider);
+
+// Update rider location
+deliveryRouter.put('/:id/location', controller.updateRiderLocation);
+
 export default deliveryRouter;

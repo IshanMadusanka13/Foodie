@@ -111,4 +111,44 @@ export class DeliveryController {
       res.status(500).json({ message: err.message });
     }
   };
+
+  autoAssignRider = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      
+      const delivery = await deliveryService.autoAssignRider(id);
+      
+      if (!delivery) {
+        res.status(404).json({ message: 'Delivery not found or no available riders' });
+      } else {
+        res.json(delivery);
+      }
+    } catch (err: any) {
+      logger.error({ err }, 'Error in autoAssignRider controller');
+      res.status(500).json({ message: err.message });
+    }
+  };
+
+  updateRiderLocation = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { latitude, longitude } = req.body;
+      
+      if (!latitude || !longitude) {
+        res.status(400).json({ message: 'Latitude and longitude are required' });
+        return;
+      }
+      
+      // In a real implementation, this would update a rider's location in a separate collection
+      // For now, we'll just acknowledge the update
+      
+      // Broadcast the location update to connected clients via WebSocket
+      // This would be implemented with Socket.io or similar
+      
+      res.json({ success: true });
+    } catch (err: any) {
+      logger.error({ err }, 'Error in updateRiderLocation controller');
+      res.status(500).json({ message: err.message });
+    }
+  };
 }
