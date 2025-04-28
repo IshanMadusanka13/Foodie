@@ -72,7 +72,7 @@ export class UserController {
 
   updatePicture = async (req: Request, res: Response): Promise<void> => {
     try {
-      const updatedUser = await userService.updateUser(req.params.id, req.body);
+      const updatedUser = await userService.updateProfilePicture(req.params.id, req.body);
       if (!updatedUser) {
         res.status(404).json({ message: 'User not found' });
       } else {

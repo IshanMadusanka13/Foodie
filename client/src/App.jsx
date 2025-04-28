@@ -22,7 +22,7 @@ function App() {
       <Route path="/pickup" element={<DeliverLocation />} />
       <Route path="/order" element={<Order />} />
       <Route path="/delivery" element={<Delivery />} />
-      <Route path="/delivery/:deliveryId" element={<DeliveryTracking />} />
+      <Route path="/delivery/:orderId" element={<DeliveryTracking />} />
     </Routes>
   )
 }

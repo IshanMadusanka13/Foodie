@@ -4,19 +4,7 @@ import { api } from '../utils/fetchapi';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState({
-    user_id: 'R002',
-    name: 'John Rider',
-    email: 'john.rider@example.com',
-    phone: '+94 77 123 4567',
-    role: 'rider',
-    profile_image: 'https://randomuser.me/api/portraits/men/32.jpg',
-    vehicle_type: 'motorcycle',
-    vehicle_number: 'ABC-1234',
-    rating: 4.8,
-    active: true,
-    created_at: new Date().toISOString()
-  });
+  const [currentUser, setCurrentUser] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 

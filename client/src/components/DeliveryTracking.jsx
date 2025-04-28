@@ -79,7 +79,7 @@ const progressVariants = {
 };
 
 const DeliveryTracking = () => {
-  const { deliveryId } = useParams();
+  const { orderId } = useParams();
   const [delivery, setDelivery] = useState(null);
   const [riderLocation, setRiderLocation] = useState(null);
   const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]);
@@ -88,13 +88,16 @@ const DeliveryTracking = () => {
   const [routeToDestination, setRouteToDestination] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [estimatedDistance, setEstimatedDistance] = useState(null);
+  const [deliveryId, setDeliveryId] = useState(null);
 
   // Fetch delivery and set up socket
   useEffect(() => {
     initSocket();
     const fetchDelivery = async () => {
       try {
-        const data = await api.trackDelivery(deliveryId);
+        const did = await api.getDeliverIdByOrder(orderId);
+        setDeliveryId(did.delivery_id)
+        const data = await api.trackDelivery(did.delivery_id);
         setDelivery(data);
         if (data.restaurant_location) {
           setMapCenter([data.restaurant_location.latitude, data.restaurant_location.longitude]);

@@ -24,7 +24,7 @@ const fetchApi = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${endpoint}`, config);
-         //console.log('API Request:', { endpoint, options });
+        //console.log('API Request:', { endpoint, options });
         // console.log('API Response:', response);
 
         if (response.status === 401) {
@@ -105,26 +105,31 @@ export const api = {
     getCurrentUser: (email) =>
         fetchApi(`${USER_SERVICE_API_URL}/users/${email}`),
 
-     // Delivery
-     getNearbyDeliveries: (longitude, latitude, maxDistance = 10000) =>
+    // Delivery
+    getNearbyDeliveries: (longitude, latitude, maxDistance = 10000) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}`),
-    
+
     getRiderDeliveries: (riderId) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/rider/${riderId}`),
-    
+
     getDeliveryById: (deliveryId) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}`),
-    
+
     acceptDelivery: (deliveryId, riderId) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/accept`, {
             method: 'PUT',
             body: JSON.stringify({ riderId })
         }),
-    
+
     updateDeliveryStatus: (deliveryId, status) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/status`, {
             method: 'PUT',
             body: JSON.stringify({ status })
+        }),
+
+    getDeliverIdByOrder: (orderId,) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/order/${orderId}`, {
+            method: 'GET'
         }),
 
     // Add to api object in fetchapi.js
