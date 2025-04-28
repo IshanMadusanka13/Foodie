@@ -9,6 +9,7 @@ userRouter.post('/login', controller.login);
 userRouter.get('/', controller.getAll);
 userRouter.get('/:id', controller.getById);
 userRouter.put('/pic/:id', controller.updatePicture);
+userRouter.get('/:email', controller.getByEmail);
 userRouter.put('/:id', controller.update);
 userRouter.delete('/:id', controller.delete);
 

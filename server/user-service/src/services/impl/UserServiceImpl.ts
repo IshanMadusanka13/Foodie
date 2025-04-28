@@ -76,6 +76,22 @@ export class UserService implements IUserService {
     }
   }
 
+  async getUserByEmail(email: string): Promise<IUser | null> {
+    logger.info({ email }, 'Fetching user by email');
+    try {
+      const user = await User.findOne({ email });
+      if (user) {
+        logger.info('User found');
+      } else {
+        logger.warn('User not found');
+      }
+      return user;
+    } catch (error) {
+      logger.error({ error, email }, 'Error fetching user by email');
+      throw error;
+    }
+  }
+
   async getAllUsers(): Promise<IUser[]> {
     logger.info('Fetching all users');
     try {
