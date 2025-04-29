@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 // Import the routes
 import restaurantRouter from './routes/restaurantRoutes';
 import menuItemRoutes from './routes/menuItemRoutes';
-import userRouter from './routes/UserRouter';
+//import userRouter from './routes/UserRouter';
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 
 // Use the imported routes
 app.use('/api/restaurant', restaurantRouter);
-app.use('/api/users', userRouter);
+//app.use('/api/users', userRouter);
 app.use('/api/menu-items', menuItemRoutes);
 app.use('/uploads', express.static('uploads'));
 

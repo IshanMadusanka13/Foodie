@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import controller from '../controllers/restaurantController';
-import { authenticate, verifyRole } from '../middlewares/auth';  
+//import { authenticate, verifyRole } from '../middlewares/auth';  
 import upload from '../middlewares/upload';
 
 const router = express.Router();

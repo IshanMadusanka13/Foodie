@@ -1,6 +1,6 @@
 import express from 'express';
 import controller from '../controllers/menuItemController';
-import { authenticate, verifyRole } from '../middlewares/auth'; 
+//import { authenticate, verifyRole } from '../middlewares/auth'; 
 import upload from '../middlewares/upload';
 
 const router = express.Router();
