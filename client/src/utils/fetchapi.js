@@ -132,7 +132,11 @@ export const api = {
             method: 'GET'
         }),
 
-    // Add to api object in fetchapi.js
+    getDeliveriesByRider: (riderId,) =>
+        fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/rider/${riderId}`, {
+            method: 'GET'
+        }),
+
     updateRiderLocation: (deliveryId, latitude, longitude) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/location`, {
             method: 'PUT',
@@ -145,7 +149,6 @@ export const api = {
     trackDelivery: (deliveryId) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/${deliveryId}/track`),
 
-    // Add this method to the api object in fetchapi.js
     getDeliveryByOrderId: (orderId) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/order/${orderId}`),
 

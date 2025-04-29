@@ -5,35 +5,46 @@ import { useAuth } from '../../hooks/useAuth';
 const Register = () => {
     const { register } = useAuth();
     const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('CUSTOMER');
+    
     const [formData, setFormData] = useState({
         name: '',
-        username: '',
-        address: '',
-        phone_number: '',
         email: '',
+        phone_number: '',
+        address: '',
         password: '',
         confirmPassword: '',
-        acceptTerms: false
+        licenseNumber: '',
+        registrationNumber: '',
+        acceptTerms: false,
+        role: 'CUSTOMER'
     });
 
     const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleTabChange = (role) => {
+        setActiveTab(role);
+        setFormData(prev => ({
+            ...prev,
+            role: role,
         }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrors({})
+        setErrors({});
 
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
-            console.log(errors)
             return;
         }
 
@@ -44,8 +55,14 @@ const Register = () => {
             phone_number: formData.phone_number,
             address: formData.address,
             profileImage: null,
-            role: 'CUSTOMER'
+            role: formData.role
         };
+
+        if (formData.role === 'RIDER') {
+            userData.licenseNumber = formData.licenseNumber;
+        } else if (formData.role === 'RESTAURANT') {
+            userData.registrationNumber = formData.registrationNumber;
+        }
 
         const result = await register(userData);
 
@@ -57,14 +74,13 @@ const Register = () => {
                 form: result.error
             }));
         }
-
     };
 
     const validateForm = () => {
         const newErrors = {};
 
         if (!formData.name.trim()) {
-            newErrors.firstName = 'Name is required';
+            newErrors.name = 'Name is required';
         }
 
         if (!formData.address.trim()) {
@@ -93,6 +109,14 @@ const Register = () => {
             newErrors.confirmPassword = 'Passwords do not match';
         }
 
+        if (formData.role === 'RIDER' && !formData.licenseNumber.trim()) {
+            newErrors.licenseNumber = 'License number is required';
+        }
+
+        if (formData.role === 'RESTAURANT' && !formData.registrationNumber.trim()) {
+            newErrors.registrationNumber = 'Registration number is required';
+        }
+
         if (!formData.acceptTerms) {
             newErrors.acceptTerms = 'You must accept the terms and conditions';
         }
@@ -103,17 +127,48 @@ const Register = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-700 to-primary-500 dark:from-slate-900 dark:to-green-900 p-4">
             <div className="w-full max-w-md">
-                <div className="text-center mb-10">
+                <div className="text-center mb-6">
                     <img src="/logo.png" alt="Foodie Logo" className="h-16 w-30 mx-auto" />
                     <h1 className="mt-4 text-3xl font-bold text-gray-900 dark:text-white">Create an account</h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">Join us to enjoy fast food delivery!</p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl backdrop-blur-sm backdrop-filter bg-opacity-80 dark:bg-opacity-80 p-8 border border-gray-200 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl backdrop-blur-sm backdrop-filter bg-opacity-80 dark:bg-opacity-80 p-6 border border-gray-200 dark:border-slate-700">
+                    {/* Role Tabs */}
+                    <div className="flex mb-6 border-b border-gray-200 dark:border-slate-700">
+                        <button
+                            onClick={() => handleTabChange('CUSTOMER')}
+                            className={`flex-1 py-2 px-4 text-center font-medium ${activeTab === 'CUSTOMER'
+                                ? 'text-green-600 border-b-2 border-green-500 dark:text-green-400 dark:border-green-400'
+                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            Customer
+                        </button>
+                        <button
+                            onClick={() => handleTabChange('RIDER')}
+                            className={`flex-1 py-2 px-4 text-center font-medium ${activeTab === 'RIDER'
+                                ? 'text-green-600 border-b-2 border-green-500 dark:text-green-400 dark:border-green-400'
+                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            Rider
+                        </button>
+                        <button
+                            onClick={() => handleTabChange('RESTAURANT')}
+                            className={`flex-1 py-2 px-4 text-center font-medium ${activeTab === 'RESTAURANT'
+                                ? 'text-green-600 border-b-2 border-green-500 dark:text-green-400 dark:border-green-400'
+                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            Restaurant
+                        </button>
+                    </div>
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Full Name
+                                {activeTab === 'RESTAURANT' ? 'Restaurant Name' : 'Full Name'}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -125,8 +180,9 @@ const Register = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
-                                    placeholder="John Doe"
+                                    placeholder={activeTab === 'RESTAURANT' ? 'Restaurant Name' : 'John Doe'}
                                 />
+                                {errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
                             </div>
                         </div>
 
@@ -146,6 +202,7 @@ const Register = () => {
                                     className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
                                     placeholder="07x 2345 6789"
                                 />
+                                {errors.phone_number && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone_number}</p>}
                             </div>
                         </div>
 
@@ -157,15 +214,59 @@ const Register = () => {
                                 <textarea
                                     id="address"
                                     name="address"
-                                    rows={3}
+                                    rows={2}
                                     required
                                     value={formData.address}
                                     onChange={handleChange}
                                     className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
                                     placeholder="123 Main St, City, Country"
                                 />
+                                {errors.address && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.address}</p>}
                             </div>
                         </div>
+
+                        {/* Role-specific fields */}
+                        {activeTab === 'RIDER' && (
+                            <div>
+                                <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Driver's License Number
+                                </label>
+                                <div className="mt-1">
+                                    <input
+                                        id="licenseNumber"
+                                        name="licenseNumber"
+                                        type="text"
+                                        required
+                                        value={formData.licenseNumber}
+                                        onChange={handleChange}
+                                        className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
+                                        placeholder="DL12345678"
+                                    />
+                                    {errors.licenseNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.licenseNumber}</p>}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'RESTAURANT' && (
+                            <div>
+                                <label htmlFor="registrationNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Business Registration Number
+                                </label>
+                                <div className="mt-1">
+                                    <input
+                                        id="registrationNumber"
+                                        name="registrationNumber"
+                                        type="text"
+                                        required
+                                        value={formData.registrationNumber}
+                                        onChange={handleChange}
+                                        className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
+                                        placeholder="BR12345678"
+                                    />
+                                    {errors.registrationNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.registrationNumber}</p>}
+                                </div>
+                            </div>
+                        )}
 
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -183,6 +284,7 @@ const Register = () => {
                                     className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
                                     placeholder="you@example.com"
                                 />
+                                {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
                             </div>
                         </div>
 
@@ -202,6 +304,7 @@ const Register = () => {
                                     className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
                                     placeholder="••••••••"
                                 />
+                                {errors.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>}
                             </div>
                         </div>
 
@@ -221,6 +324,7 @@ const Register = () => {
                                     className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
                                     placeholder="••••••••"
                                 />
+                                {errors.confirmPassword && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>}
                             </div>
                         </div>
 
@@ -231,27 +335,17 @@ const Register = () => {
                                 type="checkbox"
                                 checked={formData.acceptTerms}
                                 onChange={handleChange}
-                                className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${errors.acceptTerms ? 'border-red-300' : ''}`}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
                             <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 I accept the <a href="#" className="text-blue-600 hover:text-blue-500 dark:text-blue-400">Terms and Conditions</a>
                             </label>
+                            {errors.acceptTerms && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.acceptTerms}</p>}
                         </div>
 
-                        {/* Error messages section - add this before the submit button */}
-                        {(errors.general || Object.keys(errors).length > 0) && (
+                        {errors.form && (
                             <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800">
-                                {errors.general && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.general}</p>
-                                )}
-
-                                {Object.entries(errors).map(([field, message]) => (
-                                    field !== 'general' && message && (
-                                        <p key={field} className="text-sm text-red-600 dark:text-red-400">
-                                            {message}
-                                        </p>
-                                    )
-                                ))}
+                                <p className="text-sm text-red-600 dark:text-red-400">{errors.form}</p>
                             </div>
                         )}
 
@@ -260,7 +354,9 @@ const Register = () => {
                                 type="submit"
                                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-[#208C27] to-[#36BF3F] hover:from-[#16601d] hover:to-[#2eaa36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#36BF3F] transition-all duration-200 transform hover:scale-[1.02] active:scale-95"
                             >
-                                Create Account
+                                {activeTab === 'CUSTOMER' ? 'Create Customer Account' : 
+                                 activeTab === 'RIDER' ? 'Create Rider Account' : 
+                                 'Create Restaurant Account'}
                             </button>
                         </div>
                     </form>

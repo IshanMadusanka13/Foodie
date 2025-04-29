@@ -17,6 +17,8 @@ export class UserService implements IUserService {
       } else {
         user.user_id = await this.generateUserId();
         user.password = await bcrypt.hash(user.password, 10);
+        user.role = user.role.toLowerCase();
+        user.profile_image = "https://ui-avatars.com/api/?name=" + user.name.trim();
         const newUser = new User(user);
         const savedUser = await newUser.save();
         logger.info('User created successfully');
@@ -45,9 +47,9 @@ export class UserService implements IUserService {
       if (isPasswordValid) {
         logger.info('Login successful');
         const token = jwt.sign(
-          { user_id: user.user_id }, 
-          process.env.JWT_KEY as string, 
-          { expiresIn: '7d' } 
+          { user_id: user.user_id },
+          process.env.JWT_KEY as string,
+          { expiresIn: '7d' }
         );
         return { user_id: user.user_id, token, role: user.role };
       } else {
@@ -127,24 +129,24 @@ export class UserService implements IUserService {
   async updateProfilePicture(userId: string, profilePictureUrl: string): Promise<IUser | null> {
     logger.info({ userId }, 'Updating profile picture');
     try {
-        const updatedUser = await User.findOneAndUpdate(
-            { user_id: userId },
-            { profile_picture: profilePictureUrl },
-            { new: true }
-        );
-        
-        if (updatedUser) {
-            logger.info('Profile picture updated successfully');
-        } else {
-            logger.warn('User not found for profile picture update');
-        }
-        
-        return updatedUser;
+      const updatedUser = await User.findOneAndUpdate(
+        { user_id: userId },
+        { profile_image: profilePictureUrl },
+        { new: true }
+      );
+
+      if (updatedUser) {
+        logger.info('Profile picture updated successfully');
+      } else {
+        logger.warn('User not found for profile picture update');
+      }
+
+      return updatedUser;
     } catch (error) {
-        logger.error({ error, userId }, 'Failed to update profile picture');
-        throw error;
+      logger.error({ error, userId }, 'Failed to update profile picture');
+      throw error;
     }
-}
+  }
 
   async deleteUser(userId: string): Promise<boolean> {
     logger.info({ userId }, 'Deleting user');

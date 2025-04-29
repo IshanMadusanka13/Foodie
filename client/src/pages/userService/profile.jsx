@@ -17,6 +17,8 @@ const Profile = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [selectedDelivery, setSelectedDelivery] = useState(null);
+    const [deliveries, setDeliveries] = useState([]);
 
     const navigate = useNavigate();
 
@@ -31,11 +33,17 @@ const Profile = () => {
                     phone_number: currentUser.phone_number || '',
                     address: currentUser.address || '',
                     role: currentUser.role || '',
-                    profile_image: currentUser.profileImage || '',
-                    member_since: 'January 2023',
+                    profile_image: currentUser.profile_image || '',
+                    member_since: 'April 2025',
                     recent_orders: []
                 });
-                getOrders();
+
+                if (currentUser.role === 'customer') {
+                    getOrders();
+                } else if (currentUser.role === 'rider') {
+                    getDeliveries();
+                }
+
                 setLoading(false);
             } else {
                 console.log("No user found, redirecting to login");
@@ -44,6 +52,7 @@ const Profile = () => {
         }, 1000);
         return () => clearTimeout(timer);
     }, [currentUser, navigate]);
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -74,6 +83,56 @@ const Profile = () => {
         } catch (error) {
             console.error('Error getting orders:', error);
             setSuccessMessage('Failed to get orders. Please try again.');
+        }
+    };
+
+    const getDeliveries = async () => {
+        try {
+            const response = await api.getDeliveriesByRider(currentUser.user_id);
+
+            const transformedDeliveries = await Promise.all(response.map(async delivery => {
+                const restaurantAddress = await getAddressFromCoordinates(
+                    delivery.restaurant_location.latitude,
+                    delivery.restaurant_location.longitude
+                );
+
+                const customerAddress = await getAddressFromCoordinates(
+                    delivery.customer_location.latitude,
+                    delivery.customer_location.longitude
+                );
+
+                return {
+                    id: delivery.delivery_id,
+                    order_id: delivery.order_id,
+                    status: delivery.status,
+                    restaurantAddress,
+                    customerAddress,
+                    date: new Date(delivery.created_at).toISOString().split('T')[0],
+                    acceptedAt: delivery.accepted_at ? new Date(delivery.accepted_at).toLocaleString() : '-',
+                    collectedAt: delivery.collected_at ? new Date(delivery.collected_at).toLocaleString() : '-',
+                    deliveredAt: delivery.delivered_at ? new Date(delivery.delivered_at).toLocaleString() : '-'
+                };
+            }));
+
+            setDeliveries(transformedDeliveries);
+        } catch (error) {
+            console.error('Error getting deliveries:', error);
+            setSuccessMessage('Failed to get delivery history. Please try again.');
+        }
+    };
+
+    const getAddressFromCoordinates = async (lat, lng) => {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await response.json();
+            if (data && data.display_name) {
+                setAddress(data.display_name);
+            } else {
+                setAddress("Address not found");
+            }
+        } catch (error) {
+            console.error("Error fetching address", error);
+            setAddress("Error fetching address");
         }
     };
 
@@ -153,12 +212,19 @@ const Profile = () => {
     };
 
     const viewOrderDetails = (order) => {
-        console.log(order)
         setSelectedOrder(order);
+    };
+
+    const viewDeliveryDetails = (delivery) => {
+        setSelectedDelivery(delivery);
     };
 
     const closeOrderDetails = () => {
         setSelectedOrder(null);
+    };
+
+    const closeDeliveryDetails = () => {
+        setSelectedDelivery(null);
     };
 
     if (loading || authLoading) {
@@ -277,15 +343,30 @@ const Profile = () => {
                                 >
                                     Personal Information
                                 </button>
-                                <button
-                                    onClick={() => setActiveTab('orders')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'orders'
-                                        ? 'border-green-500 text-green-600 dark:text-green-400'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                                        }`}
-                                >
-                                    Order History
-                                </button>
+
+                                {formData.role === 'customer' && (
+                                    <button
+                                        onClick={() => setActiveTab('orders')}
+                                        className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'orders'
+                                            ? 'border-green-500 text-green-600 dark:text-green-400'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                            }`}
+                                    >
+                                        Order History
+                                    </button>
+                                )}
+
+                                {formData.role === 'rider' && (
+                                    <button
+                                        onClick={() => setActiveTab('riding')}
+                                        className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'riding'
+                                            ? 'border-green-500 text-green-600 dark:text-green-400'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                            }`}
+                                    >
+                                        Riding History
+                                    </button>
+                                )}
                             </nav>
                         </div>
 
@@ -440,7 +521,7 @@ const Profile = () => {
                                 </div>
                             )}
 
-                            {activeTab === 'orders' && (
+                            {activeTab === 'orders' && formData.role === 'customer' && (
                                 <div>
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Order History</h2>
@@ -572,6 +653,175 @@ const Profile = () => {
                                                     <div className="flex justify-between font-bold pt-2 border-t dark:border-slate-700">
                                                         <span className="text-gray-800 dark:text-white">Total:</span>
                                                         <span className="text-gray-800 dark:text-white">${selectedOrder.total.toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'riding' && formData.role === 'rider' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Riding History</h2>
+                                    </div>
+
+                                    <div className="overflow-hidden shadow rounded-lg">
+                                        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                                            <thead className="bg-gray-50 dark:bg-slate-700">
+                                                <tr>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
+                                                        Delivery ID
+                                                    </th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
+                                                        Order ID
+                                                    </th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
+                                                        Date
+                                                    </th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
+                                                        Status
+                                                    </th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
+                                                        Actions
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700">
+                                                {deliveries && deliveries.map((delivery) => (
+                                                    <tr key={delivery.id}>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                                            {delivery.id}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                            {delivery.order_id}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                            {delivery.date}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    ${delivery.status === 'completed'
+                                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                                    : delivery.status === 'in progress'
+                                                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                                                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                                }`}>
+                                                                {delivery.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                            <button
+                                                                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                                                onClick={() => viewDeliveryDetails(delivery)}
+                                                            >
+                                                                View Details
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedDelivery && (
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                                        <div className="p-6">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Delivery Details</h2>
+                                                <button
+                                                    onClick={closeDeliveryDetails}
+                                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                                                >
+                                                    <X size={24} />
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between border-b pb-2 dark:border-slate-700">
+                                                    <span className="font-medium text-gray-600 dark:text-gray-300">Delivery ID:</span>
+                                                    <span className="text-gray-800 dark:text-white">{selectedDelivery.id}</span>
+                                                </div>
+
+                                                <div className="flex justify-between border-b pb-2 dark:border-slate-700">
+                                                    <span className="font-medium text-gray-600 dark:text-gray-300">Order ID:</span>
+                                                    <span className="text-gray-800 dark:text-white">{selectedDelivery.order_id}</span>
+                                                </div>
+
+                                                <div className="flex justify-between border-b pb-2 dark:border-slate-700">
+                                                    <span className="font-medium text-gray-600 dark:text-gray-300">Status:</span>
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${selectedDelivery.status === 'completed'
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                            : selectedDelivery.status === 'in progress'
+                                                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                        }`}>
+                                                        {selectedDelivery.status}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex justify-between border-b pb-2 dark:border-slate-700">
+                                                    <span className="font-medium text-gray-600 dark:text-gray-300">Date:</span>
+                                                    <span className="text-gray-800 dark:text-white">{selectedDelivery.date}</span>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <h3 className="font-medium text-gray-600 dark:text-gray-300">Locations:</h3>
+
+                                                    <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 mb-3">
+                                                        <div className="flex items-start">
+                                                            <div className="bg-green-100 dark:bg-green-900 p-2 rounded-full mr-3">
+                                                                <MapPin size={18} className="text-green-600 dark:text-green-300" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-gray-800 dark:text-white">Restaurant Location</p>
+                                                                <p className="text-gray-600 dark:text-gray-300 mt-1">{selectedDelivery.restaurantAddress}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
+                                                        <div className="flex items-start">
+                                                            <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-3">
+                                                                <MapPin size={18} className="text-blue-600 dark:text-blue-300" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-gray-800 dark:text-white">Customer Location</p>
+                                                                <p className="text-gray-600 dark:text-gray-300 mt-1">{selectedDelivery.customerAddress}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2 pt-4">
+                                                    <h3 className="font-medium text-gray-600 dark:text-gray-300">Delivery Timeline:</h3>
+
+                                                    <div className="space-y-3">
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600 dark:text-gray-300 flex items-center">
+                                                                <Clock size={16} className="mr-2 text-green-500" /> Accepted:
+                                                            </span>
+                                                            <span className="text-gray-800 dark:text-white">{selectedDelivery.acceptedAt}</span>
+                                                        </div>
+
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600 dark:text-gray-300 flex items-center">
+                                                                <Clock size={16} className="mr-2 text-yellow-500" /> Food Collected:
+                                                            </span>
+                                                            <span className="text-gray-800 dark:text-white">{selectedDelivery.collectedAt}</span>
+                                                        </div>
+
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600 dark:text-gray-300 flex items-center">
+                                                                <Clock size={16} className="mr-2 text-blue-500" /> Delivered:
+                                                            </span>
+                                                            <span className="text-gray-800 dark:text-white">{selectedDelivery.deliveredAt}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

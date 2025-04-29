@@ -101,6 +101,15 @@ const NavBar = () => {
                             >
                                 Profile
                             </a>
+                            {currentUser && currentUser.role === 'rider' && (
+                                <a
+                                    className={`py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
+                                    href="/delivery"
+                                >
+                                    Delivery
+                                </a>
+                            )}
+
                             <button
                                 onClick={signout}
                                 className={`py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
@@ -131,6 +140,14 @@ const NavBar = () => {
                                 >
                                     Profile
                                 </a>
+                                {currentUser && currentUser.role === 'rider' && (
+                                    <a
+                                        className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
+                                        href="/delivery"
+                                    >
+                                        Delivery
+                                    </a>
+                                )}
                                 <button
                                     onClick={signout}
                                     className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
