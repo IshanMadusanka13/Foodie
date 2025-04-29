@@ -17,8 +17,8 @@ router.get(
 
 router.delete(
     '/:id',
-    //authenticate,
-    //verifyRole(['restaurant_admin']),
+    // authenticate,
+    // verifyRole(['admin']),
     controller.deleteRestaurant
 );
 
@@ -30,6 +30,8 @@ router.post(
 
 router.put(
     '/:id',
+    // authenticate,
+    // verifyRole(['admin']),
     upload.single('image'),
     controller.updateRestaurant
 );
