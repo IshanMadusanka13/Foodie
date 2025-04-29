@@ -62,7 +62,7 @@ const NavBar = () => {
                         </div>
 
                         <div className="lg:hidden">
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2">                           
                                 <a
                                     className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
                                     href="/login"

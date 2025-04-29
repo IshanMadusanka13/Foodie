@@ -38,7 +38,7 @@ const HeroSection = () => {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                             <Link
-                                to="#"
+                                to="/customerDashboard"
                                 className="px-8 py-3 text-lg font-semibold rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-md"
                             >
                                 Order Now

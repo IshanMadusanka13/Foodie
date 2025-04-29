@@ -1,5 +1,6 @@
 const USER_SERVICE_API_URL = 'http://localhost:5000/api';
-const RESTUARANT_SERVICE_API_URL = 'http://localhost:5001/api';
+const RESTAURANT_SERVICE_API_URL = 'http://localhost:4000/api/restaurant';
+const MENU_ITEM_API_URL = 'http://localhost:4000/api/menu-items';
 const PAYMENT_SERVICE_API_URL = 'http://localhost:5002/api';
 const ORDER_SERVICE_API_URL = 'http://localhost:5003/api';
 const NOTIFICATION_SERVICE_API_URL = 'http://localhost:5004/api';
@@ -7,15 +8,14 @@ const DELIVERY_SERVICE_API_URL = 'http://localhost:5005/api';
 ;
 
 const fetchApi = async (endpoint, options = {}) => {
-    const headers = {
-        'Content-Type': 'application/json',
-        ...options.headers,
-    };
-
+    const isFormData = options.body instanceof FormData;
     const token = localStorage.getItem('token');
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
+
+    const headers = {
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+    };
 
     const config = {
         ...options,
@@ -44,7 +44,6 @@ const fetchApi = async (endpoint, options = {}) => {
 
             return data;
         } else {
-
             if (!response.ok) {
                 throw new Error('Something went wrong');
             }
@@ -56,8 +55,6 @@ const fetchApi = async (endpoint, options = {}) => {
         throw error;
     }
 };
-
-
 
 export const api = {
     // User
@@ -151,6 +148,102 @@ export const api = {
 
     getDeliveryByOrderId: (orderId) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/order/${orderId}`),
+
+    // --- Restaurant APIs ---
+    createRestaurant: (restaurantData, token) =>
+        fetchApi(RESTAURANT_SERVICE_API_URL, {
+            method: 'POST',
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+            body: JSON.stringify(restaurantData),
+        }),
+
+    getAllRestaurants: () =>
+        fetchApi(RESTAURANT_SERVICE_API_URL + '/', {
+            method: 'GET',
+        }),
+
+    getRestaurantById: (id) =>
+        fetchApi(`${RESTAURANT_SERVICE_API_URL}/${id}`, {
+            method: 'GET',
+        }),
+
+    updateRestaurant: (id, formData) =>
+        fetchApi(`${RESTAURANT_SERVICE_API_URL}/${id}`, {
+            method: 'PUT',
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+            body: formData, 
+        }),
+
+
+    deleteRestaurant: (id, token) =>
+        fetchApi(`${RESTAURANT_SERVICE_API_URL}/${id}`, {
+            method: 'DELETE',
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+        }),
+
+    // --- Menu Item APIs ---
+    createMenuItem: (formData) =>
+        fetchApi(MENU_ITEM_API_URL + '/', {
+            method: 'POST',
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+            body: formData,
+        }),
+
+    getMenuItemsByRestaurant: (restaurantId) =>
+        fetchApi(`${MENU_ITEM_API_URL}/restaurant/${restaurantId}`, {
+            method: 'GET',
+        }),
+
+    getMenuItemById: (id) =>
+        fetchApi(`${MENU_ITEM_API_URL}/${id}`, {
+            method: 'GET',
+        }),
+
+    getMenuItemsByCategory: (category) =>
+        fetchApi(`${MENU_ITEM_API_URL}/category?category=${encodeURIComponent(category)}`, {
+            method: 'GET',
+        }),
+
+    getPaginatedMenuItems: (restaurantId, page = 1, limit = 10) =>
+        fetchApi(`${MENU_ITEM_API_URL}/restaurant/${restaurantId}/paginated?page=${page}&limit=${limit}`, {
+            method: 'GET',
+        }),
+
+    updateMenuItem: (id, formData) =>
+        fetchApi(`${MENU_ITEM_API_URL}/${id}`, {
+            method: 'PUT',
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+            body: formData,
+        }),
+
+    deleteMenuItem: (id) =>
+        fetchApi(`${MENU_ITEM_API_URL}/${id}`, {
+            method: 'DELETE',
+        }),
+
+    uploadMultipleMenuItemImages: (formData) =>
+        fetchApi(`${MENU_ITEM_API_URL}/upload-multiple`, {
+            method: 'POST',
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+            body: formData,
+        }),
+
+    getAllMenuItems: () =>
+        fetchApi(`${MENU_ITEM_API_URL}/all`, {
+            method: 'GET',
+        }),
 
 };
 
