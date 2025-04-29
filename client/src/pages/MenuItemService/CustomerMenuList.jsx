@@ -7,6 +7,7 @@ import {
 } from '@heroicons/react/solid';
 import { FaMapMarkerAlt, FaShoppingCart } from "react-icons/fa";
 import Cart from '../Cart';
+import { usePersistedCart } from '../../hooks/usePersistedCart';
 
 const CustomerMenuList = () => {
     const [menuItems, setMenuItems] = useState([]);
@@ -21,7 +22,7 @@ const CustomerMenuList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
     const [quantities, setQuantities] = useState({});
-    const [cart, setCart] = useState([]);
+    const [cart, setCart] = usePersistedCart('cart', []);
     const [showCart, setShowCart] = useState(false);
 
     const handleQuantityChange = (itemId, change) => {

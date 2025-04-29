@@ -61,7 +61,7 @@ const CustomerDashboard = () => {
     };
 
     return (
-        <div className="flex h-screen bg-gray-50">
+        <div className="flex h-screen bg-gray-100">
             {/* Collapsible Sidebar */}
             <div className={`bg-white shadow-md ${sidebarCollapsed ? 'w-15' : 'w-48'} transition-all duration-300`}>
                 {/* Sidebar Header */}
