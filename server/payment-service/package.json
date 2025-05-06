@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/amqplib": "^0.10.7",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^6.1.1",
@@ -24,11 +25,13 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "amqplib": "^0.10.8",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongoose": "^8.13.2",
-    "pino": "^9.6.0"
+    "pino": "^9.6.0",
+    "stripe": "^18.1.0"
   }
 }

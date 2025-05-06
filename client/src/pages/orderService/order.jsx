@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useContext } from 'react';
 import { ThemeContext } from '../../contexts/ThemeContext';
@@ -9,6 +9,11 @@ const Order = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { darkMode } = useContext(ThemeContext);
+  const [searchParams] = useSearchParams();
+  const status = searchParams.get('status');
+  const [orderCreated, setOrderCreated] = useState(false);
+  const [paymentFailed, setPaymentFailed] = useState(false);
+
 
   if (!localStorage.getItem("orderDetails")) {
     navigate("/")
@@ -33,16 +38,24 @@ const Order = () => {
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
-
     setIsLoading(true);
+    console.log('Order submitted:', {
+      customer: currentUser?.user_id,
+      restaurant: orderDetails.restaurantId,
+      restaurantLocation: orderDetails.restaurantLocation,
+      customerLocation: orderDetails.customerLocation,
+      items: orderDetails.items,
+      paymentMethod,
+      orderAmount: subtotal,
+      deliveryFee,
+      total
+    });
 
-    setTimeout(() => {
-      setIsLoading(false);
-      setOrderComplete(true);
-
-      console.log(orderDetails.customerLocation)
-
-      api.createOrder({
+    if (paymentMethod == "cash") {
+      createOrder();
+    } else {
+      setIsLoading(true)
+      api.createPaymentLink({
         customer: currentUser?.user_id,
         restaurant: orderDetails.restaurantId,
         restaurantLocation: orderDetails.restaurantLocation,
@@ -52,31 +65,82 @@ const Order = () => {
         orderAmount: subtotal,
         deliveryFee,
         total
+      }).then((paymentLink) => {
+        console.log(paymentLink)
+        window.location.href = paymentLink;
       });
 
-      console.log('Order submitted:', {
-        customer: currentUser?.user_id,
-        restaurant: orderDetails.restaurantId,
-        restaurantLocation: orderDetails.restaurantLocation,
-        customerLocation: orderDetails.customerLocation,
-        items: orderDetails.items,
-        paymentMethod,
-        orderAmount: subtotal,
-        deliveryFee,
-        total
-      });
-    }, 2000);
+    }
+    setIsLoading(false);
+    setOrderComplete(true)
+  };
+
+  const createOrder = () => {
+    api.createOrder({
+      customer: currentUser?.user_id,
+      restaurant: orderDetails.restaurantId,
+      restaurantLocation: orderDetails.restaurantLocation,
+      customerLocation: orderDetails.customerLocation,
+      items: orderDetails.items,
+      paymentMethod,
+      orderAmount: subtotal,
+      deliveryFee,
+      total
+    });
   };
 
   const handleBackToHome = () => {
     navigate('/');
   };
 
+  useEffect(() => {
+    if (status && !orderCreated) {
+      console.log(status);
+      if (status == "success") {
+        createOrder();
+        setOrderComplete(true);
+        setOrderCreated(true);
+      } else if (status == "failed" || status == "cancel") {
+        console.log("innnn");
+        setPaymentFailed(true);
+      }
+    }
+  }, [status, orderCreated]);
+
+  const handleTryAgain = () => {
+    setPaymentFailed(false);
+    navigate('/order');
+  };
+
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-slate-900 text-white' : 'bg-gray-100 text-gray-800'}`}>
       <div className="container mx-auto py-8 px-4">
         <div className={`max-w-4xl mx-auto rounded-xl shadow-lg ${darkMode ? 'bg-slate-800' : 'bg-white'} p-6`}>
-          {orderComplete ? (
+          {paymentFailed ? (
+            <div className="text-center py-8">
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 mx-auto ${darkMode ? 'text-red-500' : 'text-red-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <h2 className="mt-4 text-2xl font-bold">Payment Failed</h2>
+              <p className={`mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Your payment was not successful. Please try again or choose a different payment method.
+              </p>
+              <div className="mt-6 flex justify-center space-x-4">
+                <button
+                  onClick={handleTryAgain}
+                  className={`py-2 px-6 ${darkMode ? 'bg-primary-600 hover:bg-primary-700' : 'bg-primary-500 hover:bg-primary-600'} text-white font-bold rounded-xl transition duration-200`}
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={handleBackToHome}
+                  className={`py-2 px-6 ${darkMode ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-500 hover:bg-gray-600'} text-white font-bold rounded-xl transition duration-200`}
+                >
+                  Back to Home
+                </button>
+              </div>
+            </div>
+          ) : orderComplete ? (
             <div className="text-center py-8">
               <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 mx-auto ${darkMode ? 'text-green-500' : 'text-green-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

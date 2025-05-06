@@ -102,28 +102,28 @@ const handleOrderCreated = async (orderData: any) => {
     logger.info({ orderId: orderData.order_id, deliveryId: delivery.delivery_id }, 'Delivery created for order');
     
     // Try to auto-assign a rider
-    const assignedDelivery = await deliveryService.autoAssignRider(delivery.delivery_id);
+    // const assignedDelivery = await deliveryService.autoAssignRider(delivery.delivery_id);
     
-    if (assignedDelivery) {
-      logger.info({ 
-        orderId: orderData.order_id, 
-        deliveryId: delivery.delivery_id,
-        riderId: assignedDelivery.rider_id 
-      }, 'Rider auto-assigned to delivery');
+    // if (assignedDelivery) {
+    //   logger.info({ 
+    //     orderId: orderData.order_id, 
+    //     deliveryId: delivery.delivery_id,
+    //     riderId: assignedDelivery.rider_id 
+    //   }, 'Rider auto-assigned to delivery');
       
-      // Publish delivery assigned event
-      await publishMessage('delivery_assigned', {
-        delivery_id: assignedDelivery.delivery_id,
-        order_id: assignedDelivery.order_id,
-        rider_id: assignedDelivery.rider_id,
-        status: assignedDelivery.status
-      });
-    } else {
-      logger.warn({ 
-        orderId: orderData.order_id, 
-        deliveryId: delivery.delivery_id 
-      }, 'Could not auto-assign rider to delivery');
-    }
+    //   // Publish delivery assigned event
+    //   await publishMessage('delivery_assigned', {
+    //     delivery_id: assignedDelivery.delivery_id,
+    //     order_id: assignedDelivery.order_id,
+    //     rider_id: assignedDelivery.rider_id,
+    //     status: assignedDelivery.status
+    //   });
+    // } else {
+    //   logger.warn({ 
+    //     orderId: orderData.order_id, 
+    //     deliveryId: delivery.delivery_id 
+    //   }, 'Could not auto-assign rider to delivery');
+    // }
   } catch (error) {
     logger.error({ error, orderId: orderData.order_id }, 'Failed to process order created event');
   }

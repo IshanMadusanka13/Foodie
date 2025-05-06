@@ -105,6 +105,14 @@ export const api = {
     getCurrentUser: (email) =>
         fetchApi(`${USER_SERVICE_API_URL}/users/${email}`),
 
+
+    //Payment
+    createPaymentLink: (orderDetails) =>
+        fetchApi(PAYMENT_SERVICE_API_URL + '/payment/', {
+            method: 'POST',
+            body: JSON.stringify(orderDetails)
+        }),
+
     // Delivery
     getNearbyDeliveries: (longitude, latitude, maxDistance = 10000) =>
         fetchApi(`${DELIVERY_SERVICE_API_URL}/deliveries/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}`),

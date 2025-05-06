@@ -50,12 +50,12 @@ const DeliverLocation = () => {
         localStorage.setItem("orderDetails", JSON.stringify({
             restaurantId: 'rest123',
             restaurantName: 'Delicious Bites',
-            restaurantLocation: { longitude: -73.9857, latitude: 40.7484 },
+            restaurantLocation: { longitude: 79.907332, latitude: 6.712521 },
             restaurantAddress: '123 Foodie Ave, New York, NY 10001',
             items: [
-                { menuItemId: 'item1', menuItemName: 'Chicken Burger', menuItemPrice: 8.99, qty: 2 },
-                { menuItemId: 'item2', menuItemName: 'French Fries', menuItemPrice: 3.99, qty: 1 },
-                { menuItemId: 'item3', menuItemName: 'Soda', menuItemPrice: 1.99, qty: 2 }
+                { menuItemId: 'item1', menuItemName: 'Chicken Burger', menuItemPrice: 188.99, qty: 2 },
+                { menuItemId: 'item2', menuItemName: 'French Fries', menuItemPrice: 133.99, qty: 1 },
+                { menuItemId: 'item3', menuItemName: 'Soda', menuItemPrice: 21.99, qty: 2 }
             ]
         }))
 
@@ -69,7 +69,7 @@ const DeliverLocation = () => {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    setPosition({ lat: latitude, lng: longitude });
+                    setPosition({ lat: 6.716215, lng: 79.909577 });
                     fetchAddress(latitude, longitude);
                     setLoading(false);
                 },
@@ -123,7 +123,7 @@ const DeliverLocation = () => {
                 longitude: position.lng
             },
             deliveryDistance: calculateDistance(
-                { lat: 40.7484, lng: -73.9857 },
+                { lat: 6.712431, lng: 79.907180 },
                 position
             ).toFixed(2),
             deliveryAddress: address,
@@ -138,7 +138,7 @@ const DeliverLocation = () => {
                 longitude: position.lng
             },
             deliveryDistance: calculateDistance(
-                { lat: 40.7484, lng: -73.9857 },
+                { lat: 6.716215, lng: 79.909577 },
                 position
             ).toFixed(2),
             deliveryAddress: address,
@@ -154,7 +154,7 @@ const DeliverLocation = () => {
                 longitude: position.lng
             },
             deliveryDistance: calculateDistance(
-                { lat: 40.7484, lng: -73.9857 },
+                { lat: 6.712431, lng: 79.907180 },
                 position
             ).toFixed(2),
             deliveryAddress: address,
