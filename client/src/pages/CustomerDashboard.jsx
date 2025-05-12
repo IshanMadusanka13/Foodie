@@ -12,8 +12,13 @@ import RestaurantList from './RestaurantService/RestaurantList';
 import CustomerMenuList from './MenuItemService/CustomerMenuList';
 import JoinUs from './RestaurantService/JoinUs';
 import CreateRestaurant from './RestaurantService/CreateRestaurant';
+import MyRestaurants from './RestaurantService/MyRestaurants';
+import Profile from './userService/profile';
+import { useAuth } from '../hooks/useAuth';
+import ManageRestaurants from './RestaurantService/ManageRestaurants';
 
 const CustomerDashboard = () => {
+    const { currentUser } = useAuth();
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [activeView, setActiveView] = useState('dashboard');
 
@@ -28,27 +33,44 @@ const CustomerDashboard = () => {
             case 'restaurants':
                 return (
                     <div className="p-6">
-                        <RestaurantList/>
-                    </div>
-                );
-            case 'history':
-                return (
-                    <div className="p-6">
-                        {/* Add your order history content here */}
+                        {currentUser?.role === 'RESTAURANT' ? (
+                            <ManageRestaurants />
+                        ) : (
+                            <RestaurantList />
+                        )}
                     </div>
                 );
             case 'profile':
                 return (
                     <div className="p-6">
-                        {/* Add your profile content here */}
+                        {currentUser?.role === 'RESTAURANT' ? (
+                            <MyRestaurants />
+                        ) : (
+                            <Profile />
+                        )}
                     </div>
                 );
             case 'join_Us':
                 return (
                     <div className="p-6">
-                        <JoinUs setActiveView={setActiveView} />
+                        {currentUser?.role === 'RESTAURANT' ? (
+                            <JoinUs setActiveView={setActiveView} />
+                        ) : (
+                            <div className="text-center space-y-4 mt-16">
+                                <h2 className="text-2xl font-semibold text-gray-800">Want to partner with us?</h2>
+                                <p className="text-gray-600">
+                                    Sign up as a <span className="font-medium text-primary-600">Restaurant Admin</span> to join our platform.
+                                </p>
+                                <a
+                                    href="/register"
+                                    className="inline-block px-5 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                                >
+                                    Sign Up
+                                </a>
+                            </div>
+                        )}
                     </div>
-                );
+                    );
             case 'createRestaurant':
                 return (
                     <div className="p-6">
@@ -97,15 +119,6 @@ const CustomerDashboard = () => {
                             >
                                 <FaUtensils className={`h-5 w-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
                                 {!sidebarCollapsed && <span>Restaurants</span>}
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                onClick={() => setActiveView('history')}
-                                className={`flex items-center p-3 rounded-lg w-full text-left ${activeView === 'history' ? 'bg-gray-100 text-primary-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                            >
-                                <ClockIcon className={`h-5 w-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                                {!sidebarCollapsed && <span>Order History</span>}
                             </button>
                         </li>
                         <li>

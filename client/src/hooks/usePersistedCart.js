@@ -14,5 +14,11 @@ export const usePersistedCart = (key, initialValue) => {
         window.localStorage.setItem(key, JSON.stringify(state));
     }, [key, state]);
 
-    return [state, setState];
+    const clearSelectedItems = (itemIdsToRemove) => {
+        setState((prev) =>
+            prev.filter((item) => !itemIdsToRemove.includes(item.itemId))
+        );
+    };
+
+    return [state, setState, clearSelectedItems];
 };

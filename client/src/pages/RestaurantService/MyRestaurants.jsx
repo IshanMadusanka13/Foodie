@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../utils/fetchapi';
+import { Link } from 'react-router-dom';
 
 const MyRestaurants = () => {
     const { currentUser } = useAuth();
@@ -36,6 +37,11 @@ const MyRestaurants = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {restaurants.map((restaurant) => (
+                        <Link
+                            to={`/restaurantRA/${restaurant._id}`} // Link to the restaurant profile
+                            key={restaurant._id}
+                            className="border rounded-lg p-4 shadow hover:shadow-lg transition-shadow"
+                        >
                         <div key={restaurant._id} className="border rounded-lg p-4 shadow">
                             <h3 className="text-black text-xl font-semibold">{restaurant.name}</h3>
                             <p className="text-gray-600">{restaurant.address}</p>
@@ -53,6 +59,7 @@ const MyRestaurants = () => {
                                 )}
                             </div>
                         </div>
+                        </Link>
                     ))}
                 </div>
             )}

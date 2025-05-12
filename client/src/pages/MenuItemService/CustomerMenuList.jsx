@@ -22,7 +22,7 @@ const CustomerMenuList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
     const [quantities, setQuantities] = useState({});
-    const [cart, setCart] = usePersistedCart('cart', []);
+    const [cart, setCart, clearSelectedItems] = usePersistedCart('cart', []);
     const [showCart, setShowCart] = useState(false);
 
     const handleQuantityChange = (itemId, change) => {
@@ -326,7 +326,11 @@ const CustomerMenuList = () => {
                                         &times;
                                     </button>
                                 </div>
-                                <Cart cartItems={cart} />
+                                <Cart 
+                                    cartItems={cart} 
+                                    onClearSelected={clearSelectedItems} 
+                                    onQuantityChange={handleQuantityChange}
+                                />
                             </div>
                         </div>
                     )}
