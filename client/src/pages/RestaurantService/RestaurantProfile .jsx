@@ -4,6 +4,7 @@ import { api } from '../../utils/fetchapi';
 import MenuItemCategory from '../MenuItemService/MenuItemCategory';
 import { FaShoppingCart } from "react-icons/fa";
 import Cart from '../Cart';
+import { usePersistedCart } from '../../hooks/usePersistedCart';
 
 const RestaurantProfile = () => {
     const { id } = useParams();
@@ -15,7 +16,7 @@ const RestaurantProfile = () => {
 
     // Cart state
     const [quantities, setQuantities] = useState({});
-    const [cart, setCart] = useState([]);
+    const [cart, setCart, clearSelectedItems] = usePersistedCart('cart', []);
     const [showCart, setShowCart] = useState(false);
 
     const handleQuantityChange = (itemId, change) => {
@@ -186,7 +187,11 @@ const RestaurantProfile = () => {
                                 &times;
                             </button>
                         </div>
-                        <Cart cartItems={cart} />
+                        <Cart
+                            cartItems={cart}
+                            onClearSelected={clearSelectedItems}
+                            onQuantityChange={handleQuantityChange}
+                        />
                     </div>
                 </div>
             )}
