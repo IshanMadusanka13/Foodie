@@ -4,6 +4,7 @@ import { Edit, Save, MapPin, Phone, Mail, Shield, X, Camera, Clock, FileText, Cr
 import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../utils/fetchapi';
 import { createClient } from '@supabase/supabase-js';
+import ManageRestaurants from '../RestaurantService/ManageRestaurants';
 
 const supabaseUrl = 'https://nelqemsnxiomtaosceui.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lbHFlbXNueGlvbXRhb3NjZXVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4NTA1OTEsImV4cCI6MjA2MTQyNjU5MX0.blyjPV4hGnAQpaCyWJD1LAljPt5SWa8o4SxvWEAGAUU';
@@ -367,6 +368,18 @@ const Profile = () => {
                                         Riding History
                                     </button>
                                 )}
+
+                                {formData.role === 'admin' && (
+                                    <button
+                                        onClick={() => setActiveTab('admin')}
+                                        className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'riding'
+                                            ? 'border-green-500 text-green-600 dark:text-green-400'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                            }`}
+                                    >
+                                        Manage Restaurants
+                                    </button>
+                                )}
                             </nav>
                         </div>
 
@@ -518,6 +531,12 @@ const Profile = () => {
                                             </div>
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {activeTab === 'admin' && formData.role === 'admin' && (
+                                <div>
+                                    <ManageRestaurants/>
                                 </div>
                             )}
 

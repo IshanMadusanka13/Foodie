@@ -30,7 +30,24 @@ const Login = () => {
             });
 
             if (success) {
-                navigate('/profile');
+                // Get the current user role from localStorage
+                const foodie_user = JSON.parse(localStorage.getItem('foodie_user') || '{}');
+                const userRole = foodie_user.role || 'CUSTOMER'; // Default to CUSTOMER if role not found
+
+                // Navigate based on role
+                switch (userRole.toUpperCase()) {
+                    case 'CUSTOMER':
+                        navigate('/');
+                        break;
+                    case 'RESTAURANT':
+                        navigate('/CustomerDashboard');
+                        break;
+                    case 'ADMIN':
+                        navigate('/profile');
+                        break;
+                    default:
+                        navigate('/profile');
+                }
             } else {
                 setLoginError(error || 'Login failed. Please try again.');
             }
