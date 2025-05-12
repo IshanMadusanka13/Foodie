@@ -12,10 +12,22 @@ const createMenuItem = async (req: Request, res: Response): Promise<void> => {
         const price = parseFloat(req.body.price);
         if (isNaN(price) || price < 0) {
             res.status(400).json({ status: 'Error', message: 'Invalid price. Price must be a number ≥ 0.' });
+            return; 
         }
 
-        const files = req.files as Express.Multer.File[];
-        const imageUrls = files ? await uploadImagesToSupabase(files, 'menu-items') : [];
+        const file = req.file as Express.Multer.File | undefined;
+        let imageUrls: string[] = [];
+
+        if (file) {
+            imageUrls = await uploadImagesToSupabase([file], 'menu-items');
+        } else if (req.body.imageUrls) {
+            try {
+                const parsed = JSON.parse(req.body.imageUrls);
+                imageUrls = Array.isArray(parsed) ? parsed : [parsed];
+            } catch {
+                imageUrls = [req.body.imageUrls];
+            }
+        }
 
         const menuItem = await MenuItemService.createMenuItem({
             ...req.body,
