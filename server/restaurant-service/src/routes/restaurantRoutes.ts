@@ -15,6 +15,12 @@ router.get(
     controller.getRestaurantById
 );
 
+router.get(
+    '/owner/:ownerId',
+    // authenticate,
+    controller.getRestaurantsByOwnerId
+);
+
 router.delete(
     '/:id',
     // authenticate,

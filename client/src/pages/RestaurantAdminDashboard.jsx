@@ -11,6 +11,7 @@ import CustomerMenuList from './MenuItemService/CustomerMenuList';
 import JoinUs from './RestaurantService/JoinUs';
 import CreateRestaurant from './RestaurantService/CreateRestaurant';
 import RestaurantListRA from './RestaurantService/RestaurantListRA';
+import MyRestaurants from './RestaurantService/MyRestaurants';
 
 const RestaurantAdminDashboard = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -30,16 +31,10 @@ const RestaurantAdminDashboard = () => {
                         <RestaurantListRA />
                     </div>
                 );
-            case 'history':
-                return (
-                    <div className="p-6">
-                        {/* Add your order history content here */}
-                    </div>
-                );
             case 'profile':
                 return (
                     <div className="p-6">
-                        {/* Add your profile content here */}
+                        <MyRestaurants />
                     </div>
                 );
             case 'join_Us':
@@ -101,20 +96,11 @@ const RestaurantAdminDashboard = () => {
                         </li>
                         <li>
                             <button
-                                onClick={() => setActiveView('history')}
-                                className={`flex items-center p-3 rounded-lg w-full text-left ${activeView === 'history' ? 'bg-gray-100 text-primary-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                            >
-                                <ClockIcon className={`h-5 w-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                                {!sidebarCollapsed && <span>Order History</span>}
-                            </button>
-                        </li>
-                        <li>
-                            <button
                                 onClick={() => setActiveView('profile')}
                                 className={`flex items-center p-3 rounded-lg w-full text-left ${activeView === 'profile' ? 'bg-gray-100 text-primary-600' : 'text-gray-700 hover:bg-gray-100'}`}
                             >
                                 <UserIcon className={`h-5 w-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                                {!sidebarCollapsed && <span>User Profile</span>}
+                                {!sidebarCollapsed && <span>My Restaurants</span>}
                             </button>
                         </li>
                         <li>
@@ -123,7 +109,7 @@ const RestaurantAdminDashboard = () => {
                                 className={`flex items-center p-3 rounded-lg w-full text-left ${activeView === 'join_Us' ? 'bg-gray-100 text-primary-600' : 'text-gray-700 hover:bg-gray-100'}`}
                             >
                                 <FaHandshake className={`h-5 w-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                                {!sidebarCollapsed && <span>Join Us</span>}
+                                {!sidebarCollapsed && <span>New Restaurant</span>}
                             </button>
                         </li>
                     </ul>

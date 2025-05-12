@@ -6,10 +6,9 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { v4 as uuidv4 } from 'uuid';
 import 'leaflet/dist/leaflet.css';
+import { useAuth } from '../../hooks/useAuth';
 
 // Assets
-import formImage from '../../assets/formImage.jpg';
-import backgroundImage from '../../assets/hero.jpg';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -45,6 +44,7 @@ LocationPicker.propTypes = {
 
 // Main Component
 const CreateRestaurant = ({ setActiveView }) => {
+    const { currentUser } = useAuth();
     const [form, setForm] = useState({
         name: '',
         address: '',
@@ -56,7 +56,19 @@ const CreateRestaurant = ({ setActiveView }) => {
         imageUrls: [],
         pin: '',
         ownerId: '',
+        ownerName: '',
     });
+
+    // Set ownerId when component mounts
+    useEffect(() => {
+        if (currentUser?._id) {
+            setForm(prev => ({
+                ...prev,
+                ownerId: currentUser._id,
+                ownerName: currentUser.name || ''
+            }));
+        }
+    }, [currentUser]);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,7 +146,7 @@ const CreateRestaurant = ({ setActiveView }) => {
         try {
             const { ownerId, name, address, email, latitude, longitude, openTime, closeTime, imageUrls } = form;
 
-            if (!ownerId || !name || !address || !email || isNaN(latitude) || isNaN(longitude)) {
+            if (!ownerId, !name || !address || !email || isNaN(latitude) || isNaN(longitude)) {
                 throw new Error('Please fill all required fields');
             }
 
@@ -178,22 +190,6 @@ const CreateRestaurant = ({ setActiveView }) => {
         }
     };
 
-    const backgroundStyle = {
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '30vh',
-        padding: '40px',
-        color: 'white',
-    };
-
-    const backgroundStyle1 = {
-        backgroundImage: `url(${formImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-    };
-
     return (
         <div className="text-black bg-white p-6 rounded-lg shadow-md" >
             <button
@@ -206,16 +202,16 @@ const CreateRestaurant = ({ setActiveView }) => {
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Owner ID */}
                     <div>
-                        <label className="block mb-1 font-medium">Owner ID*</label>
-                        <input
-                            type="text"
-                            name="ownerId"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            placeholder="Enter owner's ID"
-                            value={form.ownerId}
-                            onChange={handleChange}
-                            required
-                        />
+                    <label className="block mb-1 font-medium">Owner</label>
+                    <input
+                        type="text"
+                        name="ownerName"
+                        className="text-black w-full border px-4 py-2 rounded bg-gray-100 cursor-not-allowed"
+                        value={form.ownerName}
+                        readOnly
+                    />
+                    {/* Hidden input to still send the ownerId */}
+                    <input type="hidden" name="ownerId" value={form.ownerId} />
                     </div>
                     {/* Name */}
                     <div>
@@ -302,15 +298,15 @@ const CreateRestaurant = ({ setActiveView }) => {
 
                     {/* Open Time */}
                     <div>
-                        <label className="block mb-1 font-medium">Open Time*</label>
-                        <input
-                            type="time"
-                            name="openTime"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            value={form.openTime}
-                            onChange={handleChange}
-                            required
-                        />
+                    <label className="block font-medium">Open Time*</label>                        
+                    <input
+                        type="time"
+                        name="openTime"
+                        className="text-black w-full border px-4 py-2 rounded"
+                        value={form.openTime}
+                        onChange={handleChange}
+                        required
+                    />
                     </div>
 
                     {/* Close Time */}
@@ -328,7 +324,7 @@ const CreateRestaurant = ({ setActiveView }) => {
 
                     {/* Image Upload */}
                     <div className="col-span-full">
-                        <label className="block mb-1 font-medium">Restaurant Image*</label>
+                        <label className="block font-medium">Restaurant Image*</label>
                         <input
                             type="file"
                             accept="image/*"
@@ -350,7 +346,7 @@ const CreateRestaurant = ({ setActiveView }) => {
                     )}
 
                     {/* Submit Button */}
-                    <div className="col-span-full text-center mt-6">
+                    <div className="col-span-full text-center mt-2">
                         <button
                             type="submit"
                             className="bg-primary-800 text-white px-6 py-2 rounded hover:bg-primary-600 transition duration-200 disabled:opacity-50"

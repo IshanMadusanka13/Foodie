@@ -169,6 +169,11 @@ export const api = {
             method: 'GET',
         }),
 
+    getRestaurantsByOwner: (ownerId) =>
+        fetchApi(`${RESTAURANT_SERVICE_API_URL}/owner/${ownerId}`, {
+            method: 'GET'
+            }),
+
     updateRestaurant: (id, formData) =>
         fetchApi(`${RESTAURANT_SERVICE_API_URL}/${id}`, {
             method: 'PUT',
@@ -177,7 +182,6 @@ export const api = {
             // },
             body: formData, 
         }),
-
 
     deleteRestaurant: (id, token) =>
         fetchApi(`${RESTAURANT_SERVICE_API_URL}/${id}`, {

@@ -150,6 +150,18 @@ const getRestaurantById = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+const getRestaurantsByOwnerId = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const restaurants = await RestaurantService.getRestaurantsByOwnerId(req.params.ownerId);
+        res.status(200).json({
+            status: 'Success',
+            data: { restaurants }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // Delete Restaurant
 const deleteRestaurant = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -167,6 +179,7 @@ export default {
     createRestaurant,
     getAllRestaurants,
     getRestaurantById,
+    getRestaurantsByOwnerId,
     updateRestaurant,
     deleteRestaurant
 };

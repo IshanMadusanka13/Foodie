@@ -1,7 +1,7 @@
 import Restaurant, { IRestaurant } from '../models/Restaurant';
 import mongoose from 'mongoose';
 
-type RestaurantWithOpenStatus = {
+export type RestaurantWithOpenStatus = {
     _id: mongoose.Types.ObjectId;
     name: string;
     address: string;
@@ -14,7 +14,7 @@ type RestaurantWithOpenStatus = {
 };
 
 // Utility function
-const isCurrentlyOpen = (openTime: string, closeTime: string): boolean => {
+export const isCurrentlyOpen = (openTime: string, closeTime: string): boolean => {
     try {
         if (
             typeof openTime !== 'string' ||
@@ -112,6 +112,24 @@ const getRestaurantById = async (restaurantId: string): Promise<RestaurantWithOp
     }
 };
 
+// Get Restaurants By Owner Id
+const getRestaurantsByOwnerId = async (ownerId: string): Promise<RestaurantWithOpenStatus[]> => {
+    try {
+        if (!ownerId) throw new Error('Owner ID is required');
+
+        const restaurants = await Restaurant.find({ ownerId });
+        return restaurants.map((r) => {
+            const plain = r.toObject() as Omit<RestaurantWithOpenStatus, 'isOpen'>;
+            return {
+                ...plain,
+                isOpen: isCurrentlyOpen(r.openTime, r.closeTime)
+            };
+        });
+    } catch (error: any) {
+        throw new Error(error.message || 'Failed to get restaurants by owner');
+    }
+};
+
 // Update
 const updateRestaurant = async (
     restaurantId: string,
@@ -148,6 +166,7 @@ export default {
     createRestaurant,
     getAllRestaurants,
     getRestaurantById,
+    getRestaurantsByOwnerId,
     updateRestaurant,
     deleteRestaurant,
 };

@@ -29,6 +29,7 @@ import AdminDashboard from './pages/adminDashboard';
 import RestaurantAdminDashboard from './pages/RestaurantAdminDashboard';
 import RestaurantListRA from './pages/RestaurantService/RestaurantListRA';
 import RestaurantProfileRA from './pages/RestaurantService/RestaurantProfileRA';
+import MyRestaurants from './pages/RestaurantService/MyRestaurants';
 
 import Cart from './pages/Cart';
 
@@ -61,6 +62,7 @@ function App() {
       <Route path="/manageRestaurants" element={<ManageRestaurants />} />
       <Route path="/adminDashboard" element={<AdminDashboard />} />
       <Route path="/restaurantAdminDashboard" element={<RestaurantAdminDashboard />} />
+      <Route path="/myRestaurants" element={<MyRestaurants />} />
 
     </Routes>
   )
