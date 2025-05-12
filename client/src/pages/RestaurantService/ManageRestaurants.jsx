@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../utils/fetchapi';
 import { Trash2, Pencil } from 'lucide-react';
 import EditRestaurant from './EditRestaurant';
+import { isCurrentlyOpen } from '../../../../server/restaurant-service/src/services/restaurantService';
 
 const ManageRestaurants = () => {
     const [restaurants, setRestaurants] = useState([]);
@@ -47,11 +48,28 @@ const ManageRestaurants = () => {
         try {
             await api.deleteRestaurant(restaurantId);
             setRestaurants((prev) => prev.filter((r) => r._id !== restaurantId));
+            setFilteredRestaurants((prev) => prev.filter((r) => r._id !== restaurantId));
         } catch (err) {
             console.error('Error deleting restaurant:', err);
             setError('Failed to delete restaurant.');
         }
     };
+
+    const computeIsOpen = (restaurant) => {
+        if (!restaurant.openTime || !restaurant.closeTime) return false;
+
+        const now = new Date();
+        const [openHours, openMinutes] = restaurant.openTime.split(':').map(Number);
+        const [closeHours, closeMinutes] = restaurant.closeTime.split(':').map(Number);
+
+        const openDate = new Date(now);
+        openDate.setHours(openHours, openMinutes, 0, 0);
+
+        const closeDate = new Date(now);
+        closeDate.setHours(closeHours, closeMinutes, 0, 0);
+
+        return now >= openDate && now <= closeDate;
+    };    
 
     return (
         <div className='bg-white p-6'> 
@@ -83,14 +101,19 @@ const ManageRestaurants = () => {
                         });
 
                         if (updated?.data?.restaurant) {
+                            const updatedRestaurant = updated.data.restaurant;
+                            updatedRestaurant.isOpen = isCurrentlyOpen(
+                                updatedRestaurant.openTime,
+                                updatedRestaurant.closeTime
+                            );
                             setRestaurants((prev) =>
                                 prev.map((restaurant) =>
-                                    restaurant._id === editingRestaurant._id ? updated.data.restaurant : restaurant
+                                    restaurant._id === updatedRestaurant._id ? updatedRestaurant : restaurant
                                 )
                             );
                             setFilteredRestaurants((prev) =>
                                 prev.map((restaurant) =>
-                                    restaurant._id === editingRestaurant._id ? updated.data.restaurant : restaurant
+                                    restaurant._id === updatedRestaurant._id ? updatedRestaurant : restaurant
                                 )
                             );
                             setEditingRestaurant(null); // Close the edit form

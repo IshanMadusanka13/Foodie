@@ -287,14 +287,27 @@ const CreateRestaurant = ({ setActiveView }) => {
 
                     {/* Google Map Pin */}
                     <div className="col-span-full">
-                        <button
-                            type="button"
-                            onClick={() => setIsDialogOpen(true)}
-                            className="text-grey bg-primary-400 px-4 py-2 rounded hover:bg-primary-300 hover:text-black transition"
-                        >
-                            Pick Location
-                        </button>
+                        <label className="block mb-1 font-medium">Pick a location*</label>
+                        <div className="h-64 w-full mb-4 rounded overflow-hidden" >
+                            <MapContainer
+                                center={[
+                                    parseFloat(form.latitude || '6.9271'),
+                                    parseFloat(form.longitude || '79.8612'),
+                                ]}
+                                zoom={16}
+                            >
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    attribution="&copy; OpenStreetMap contributors"
+                                />
+                                <LocationPicker setLatLng={setLatLng} />
+                                {form.latitude && form.longitude && (
+                                    <Marker position={[parseFloat(form.latitude), parseFloat(form.longitude)]} />
+                                )}
+                            </MapContainer>
+                        </div>
                     </div>
+                
 
                     {/* Open Time */}
                     <div>
@@ -355,48 +368,7 @@ const CreateRestaurant = ({ setActiveView }) => {
                             {isSubmitting ? 'Creating...' : 'SignUp and Continue'}
                         </button>
                     </div>
-                </form>
-
-            <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} as={Fragment}>
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <Dialog.Panel className="bg-white text-black p-6 rounded shadow-xl w-full">
-                        <Dialog.Title className="text-xl font-bold mb-4">Custom Dialog Title</Dialog.Title>
-                        <div className="h-64 w-full mb-4 rounded overflow-hidden">
-                            <MapContainer
-                                center={[
-                                    parseFloat(form.latitude || '6.9271'),
-                                    parseFloat(form.longitude || '79.8612'),
-                                ]}
-                                zoom={13}
-                                style={{ height: '100%', width: '100%' }}
-                            >
-                                <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    attribution="&copy; OpenStreetMap contributors"
-                                />
-                                <LocationPicker setLatLng={setLatLng} />
-                                {form.latitude && form.longitude && (
-                                    <Marker position={[parseFloat(form.latitude), parseFloat(form.longitude)]} />
-                                )}
-                            </MapContainer>
-                        </div>
-
-                        <div className="mb-4">
-                            <p>Latitude: <span className="font-medium">{form.latitude && Number(form.latitude).toFixed(5)}</span></p>
-                            <p>Longitude: <span className="font-medium">{form.longitude && Number(form.longitude).toFixed(5)}</span></p>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <button
-                                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                                onClick={() => setIsDialogOpen(false)}
-                            >
-                                Done
-                            </button>
-                        </div>
-                    </Dialog.Panel>
-                </div>
-            </Dialog>
+                </form>            
         </div>
     );
 };
