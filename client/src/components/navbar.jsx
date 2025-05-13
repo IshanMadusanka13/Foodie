@@ -8,6 +8,8 @@ const NavBar = () => {
     const navigate = useNavigate();
     const { darkMode, toggleTheme } = useContext(ThemeContext);
 
+    const isAuthenticated = Boolean(currentUser && Object.keys(currentUser).length > 0);
+
     const signout = async () => {
         try {
             await logout();
@@ -17,8 +19,49 @@ const NavBar = () => {
         }
     };
 
-    const notification = () => {
+    const buttonStyle = `py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`;
+    const mobileButtonStyle = `py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`;
+    const iconButtonStyle = `p-2 rounded-full ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-200 hover:bg-gray-300'} transition-colors duration-200`;
 
+    const NotificationIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+            />
+        </svg>
+    );
+
+    const renderAuthButtons = (isMobile = false) => {
+        const style = isMobile ? mobileButtonStyle : buttonStyle;
+
+        if (!isAuthenticated) {
+            return (
+                <>
+                    <a className={style} href="/login">Sign In</a>
+                    <a className={style} href="/register">Register</a>
+                </>
+            );
+        }
+
+        return (
+            <>
+                <button
+                    onClick={() => { }}
+                    className={iconButtonStyle}
+                    aria-label="Notifications"
+                >
+                    <NotificationIcon />
+                </button>
+                <a className={style} href="/profile">Profile</a>
+                {currentUser?.role === 'rider' && (
+                    <a className={style} href="/delivery">Delivery</a>
+                )}
+                <button onClick={signout} className={style}>Sign Out</button>
+            </>
+        );
     };
 
     return (
@@ -30,7 +73,7 @@ const NavBar = () => {
 
                 <button
                     onClick={toggleTheme}
-                    className={`p-2 rounded-full mr-4 ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-200 hover:bg-gray-300'} transition-colors duration-200`}
+                    className={iconButtonStyle}
                     aria-label="Toggle dark mode"
                 >
                     {darkMode ? (
@@ -44,121 +87,13 @@ const NavBar = () => {
                     )}
                 </button>
 
-                {!currentUser ? (
-                    <>
-                        <div className="hidden lg:flex items-center space-x-4">
-                            <a
-                                className={`py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                href="/login"
-                            >
-                                Sign In
-                            </a>
-                            <a
-                                className={`py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                href="/register"
-                            >
-                                Register
-                            </a>
-                        </div>
+                <div className="hidden lg:flex items-center space-x-4">
+                    {renderAuthButtons(false)}
+                </div>
 
-                        <div className="lg:hidden">
-                            <div className="flex space-x-2">
-                                <a
-                                    className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                    href="/login"
-                                >
-                                    Sign In
-                                </a>
-                                <a
-                                    className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                    href="/register"
-                                >
-                                    Register
-                                </a>
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="hidden lg:flex items-center space-x-4">
-                            <button
-                                onClick={notification}
-                                className={`p-2 rounded-full ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-200 hover:bg-gray-300'} transition-colors duration-200`}
-                                aria-label="Notifications"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                                    />
-                                </svg>
-                            </button>
-                            <a
-                                className={`py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                href="/profile"
-                            >
-                                Profile
-                            </a>
-                            {currentUser && currentUser.role === 'rider' && (
-                                <a
-                                    className={`py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                    href="/delivery"
-                                >
-                                    Delivery
-                                </a>
-                            )}
-
-                            <button
-                                onClick={signout}
-                                className={`py-2 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                            >
-                                Sign Out
-                            </button>
-                        </div>
-
-                        <div className="lg:hidden">
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={notification}
-                                    className={`p-2 rounded-full ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-200 hover:bg-gray-300'} transition-colors duration-200`}
-                                    aria-label="Notifications"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                                        />
-                                    </svg>
-                                </button>
-                                <a
-                                    className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                    href="/profile"
-                                >
-                                    Profile
-                                </a>
-                                {currentUser && currentUser.role === 'rider' && (
-                                    <a
-                                        className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                        href="/delivery"
-                                    >
-                                        Delivery
-                                    </a>
-                                )}
-                                <button
-                                    onClick={signout}
-                                    className={`py-2 px-4 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'} text-sm text-white font-bold rounded-xl transition duration-200`}
-                                >
-                                    Sign Out
-                                </button>
-                            </div>
-                        </div>
-                    </>
-                )}
-
+                <div className="lg:hidden flex space-x-2">
+                    {renderAuthButtons(true)}
+                </div>
             </nav>
         </div>
     );
