@@ -3,8 +3,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../utils/fetchapi';
 import { Link } from 'react-router-dom';
 import { ThemeContext } from '../../contexts/ThemeContext';
+import PropTypes from 'prop-types';
 
-const MyRestaurants = () => {
+const MyRestaurants = ({setActiveView}) => {
     const { currentUser } = useAuth();
     const { darkMode } = useContext(ThemeContext);
     const [restaurants, setRestaurants] = useState([]);
@@ -89,6 +90,10 @@ const MyRestaurants = () => {
             )}
         </div>
     );
+};
+
+MyRestaurants.propTypes = {
+    setActiveView: PropTypes.func.isRequired,
 };
 
 export default MyRestaurants;

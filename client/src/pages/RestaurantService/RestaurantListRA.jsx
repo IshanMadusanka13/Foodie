@@ -39,6 +39,7 @@ const RestaurantListRA = () => {
 
     return (
         <div>
+        
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                 <h1 className="text-primary-600 text-3xl font-bold mb-4 md:mb-0 text-center md:text-left">Restaurants</h1>
                 <div className="w-full md:max-w-md">

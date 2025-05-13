@@ -15,12 +15,14 @@ import Profile from './userService/profile';
 import { useAuth } from '../hooks/useAuth';
 import ManageRestaurants from './RestaurantService/ManageRestaurants';
 import { ThemeContext } from '../contexts/ThemeContext';
+import RestaurantProfileRA from './RestaurantService/RestaurantProfileRA';
 
 const CustomerDashboard = () => {
     const { currentUser } = useAuth();
     const { darkMode } = useContext(ThemeContext);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [activeView, setActiveView] = useState('dashboard');
+    const [activeViewParams, setActiveViewParams] = useState({});
 
     // Theme color definitions
     const theme = {
@@ -95,9 +97,20 @@ const CustomerDashboard = () => {
                         <CreateRestaurant setActiveView={setActiveView} />
                     </div>
                 );
+            case 'restaurantProfile':
+                return <RestaurantProfileRA
+                    setActiveView={setActiveView}
+                    restaurantId={activeViewParams.restaurantId}
+                           />;
             default:
                 return <div>Select a view</div>;
         }
+    };
+
+    // When navigating to restaurant profile:
+    const navigateToRestaurant = (restaurantId) => {
+        setActiveView('restaurantProfile');
+        setActiveViewParams({ restaurantId });
     };
 
     return (

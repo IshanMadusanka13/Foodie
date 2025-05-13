@@ -62,7 +62,7 @@ const RestaurantProfileRA = () => {
     );
 
     return (
-        <div className={darkMode ? 'bg-gray-900' : 'bg-white'}>
+        <div className={darkMode ? 'bg-gray-900' : 'border-t bg-white'}>
             <div className="flex flex-col items-center">
                 {/* Restaurant Header Section */}
                 <div className="flex justify-between gap-6 p-4">
@@ -84,7 +84,7 @@ const RestaurantProfileRA = () => {
                     </div>
                 </div>
                 {/* Restaurant Images */}
-                <div className="flex space-x-4 overflow-x-auto pb-2 px-4">
+                <div className="flex space-x-4 overflow-x-auto pb-4 px-4">
                     {restaurant.imageUrls?.map((url, index) => (
                         <img
                             key={index}
@@ -97,7 +97,7 @@ const RestaurantProfileRA = () => {
             </div>
 
             {/* Main Content - MenuItemList rendered directly */}
-            <div className={`max-w-6xl mx-auto p-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+            <div className={`max-w-6xl mx-auto p-6 ${darkMode ? 'bg-gray-900' : 'border-t bg-white'}`}>
                 <MenuItemList
                     restaurantId={id}
                     menuItems={menuItems}

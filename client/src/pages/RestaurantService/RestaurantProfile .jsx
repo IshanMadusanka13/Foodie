@@ -90,10 +90,10 @@ const RestaurantProfile = () => {
     if (!restaurant) return <div className="p-8">Restaurant not found</div>;
 
     return (
-        <div className={`px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className={`px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'border-t bg-white'}`}>
             <div className="flex flex-col items-center">
                 {/* Restaurant Header Section */}
-                <div className="flex justify-between gap-6">
+                <div className="flex justify-between gap-6 mt-4">
                     <h1 className="text-primary-600 text-4xl font-bold mb-2">{restaurant.name}</h1>
                     {/* Restaurant Info */}
                     <div>

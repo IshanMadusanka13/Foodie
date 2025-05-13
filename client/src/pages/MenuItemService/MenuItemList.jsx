@@ -149,7 +149,7 @@ const MenuItemList = ({ restaurantId }) => {
                 />
             )}
 
-            <div className="flex justify-between items-center mb-4 p-4">
+            <div className="flex justify-between items-center mb-4 p-4 border-t border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
                 <h2 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>
                     Menu
                 </h2>
