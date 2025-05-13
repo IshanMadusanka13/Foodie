@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../utils/fetchapi';
 import { Link } from 'react-router-dom';
+import { ThemeContext } from '../../contexts/ThemeContext';
 
 const MyRestaurants = () => {
     const { currentUser } = useAuth();
+    const { darkMode } = useContext(ThemeContext);
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -26,29 +28,52 @@ const MyRestaurants = () => {
         fetchRestaurants();
     }, [currentUser]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
+    // Theme classes
+    const containerClasses = `container mx-auto p-4 ${darkMode ? 'bg-gray-800' : 'bg-white'}`;
+    const titleClasses = `text-2xl font-bold mb-4 ${darkMode ? 'text-primary-400' : 'text-primary-700'}`;
+    const cardClasses = `border rounded-lg p-4 shadow transition-shadow ${darkMode
+            ? 'bg-gray-700 border-gray-600 hover:shadow-lg hover:shadow-gray-600'
+            : 'bg-white border-gray-200 hover:shadow-lg'
+        }`;
+    const restaurantNameClasses = `text-xl font-semibold ${darkMode ? 'text-white' : 'text-black'}`;
+    const addressClasses = darkMode ? 'text-gray-300' : 'text-gray-600';
+    const hoursClasses = darkMode ? 'text-gray-200' : 'text-black';
+
+    if (loading) return (
+        <div className={`flex justify-center items-center h-64 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        </div>
+    );
+
+    if (error) return (
+        <div className={`p-4 ${darkMode ? 'bg-gray-800 text-red-400' : 'bg-white text-red-600'}`}>
+            Error: {error}
+        </div>
+    );
 
     return (
-        <div className="container mx-auto p-4">
-            <h2 className="text-primary-700 text-2xl font-bold mb-4">My Restaurants</h2>
+        <div className={containerClasses}>
+            <h2 className={titleClasses}>My Restaurants</h2>
             {restaurants.length === 0 ? (
-                <p>You do not have any restaurants yet.</p>
+                <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+                    You do not have any restaurants yet.
+                </p>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {restaurants.map((restaurant) => (
                         <Link
-                            to={`/restaurantRA/${restaurant._id}`} // Link to the restaurant profile
+                            to={`/restaurantRA/${restaurant._id}`}
                             key={restaurant._id}
-                            className="border rounded-lg p-4 shadow hover:shadow-lg transition-shadow"
+                            className={cardClasses}
                         >
-                        <div key={restaurant._id} className="border rounded-lg p-4 shadow">
-                            <h3 className="text-black text-xl font-semibold">{restaurant.name}</h3>
-                            <p className="text-gray-600">{restaurant.address}</p>
-                            <p className={`mt-2 ${restaurant.isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                            <h3 className={restaurantNameClasses}>{restaurant.name}</h3>
+                            <p className={addressClasses}>{restaurant.address}</p>
+                            <p className={`mt-2 ${restaurant.isOpen ? 'text-green-500' : 'text-red-500'}`}>
                                 {restaurant.isOpen ? 'Open' : 'Closed'}
                             </p>
-                            <p className='text-black'>Hours: {restaurant.openTime} - {restaurant.closeTime}</p>
+                            <p className={hoursClasses}>
+                                Hours: {restaurant.openTime} - {restaurant.closeTime}
+                            </p>
                             <div className="mt-2">
                                 {restaurant.imageUrls?.length > 0 && (
                                     <img
@@ -58,7 +83,6 @@ const MyRestaurants = () => {
                                     />
                                 )}
                             </div>
-                        </div>
                         </Link>
                     ))}
                 </div>

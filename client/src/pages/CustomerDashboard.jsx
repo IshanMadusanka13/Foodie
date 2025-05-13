@@ -49,7 +49,7 @@ const CustomerDashboard = () => {
             case 'restaurants':
                 return (
                     <div className="p-6">
-                        {currentUser?.role === 'RESTAURANT' ?
+                        {currentUser?.role === 'ADMIN' ?
                             <ManageRestaurants /> :
                             <RestaurantList />
                         }

@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../utils/fetchapi';
 import { Trash2, Pencil } from 'lucide-react';
 import EditRestaurant from './EditRestaurant';
 import { isCurrentlyOpen } from '../../utils/timeHelpers';
+import { ThemeContext } from '../../contexts/ThemeContext';
 
 const ManageRestaurants = () => {
+    const { darkMode } = useContext(ThemeContext);
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -56,7 +58,7 @@ const ManageRestaurants = () => {
     };
     
     return (
-        <div className='bg-white p-6'> 
+        <div className={`px-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
             <EditRestaurant 
                 restaurant={editingRestaurant}
                 onChange={setEditingRestaurant}

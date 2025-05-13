@@ -1,11 +1,14 @@
 // External Libraries
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { v4 as uuidv4 } from 'uuid';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../../hooks/useAuth';
+
+// Context
+import { ThemeContext } from '../../contexts/ThemeContext';
 
 // Assets
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -44,6 +47,8 @@ LocationPicker.propTypes = {
 // Main Component
 const CreateRestaurant = ({ setActiveView }) => {
     const { currentUser } = useAuth();
+    const { darkMode } = useContext(ThemeContext);
+
     const [form, setForm] = useState({
         name: '',
         address: '',
@@ -153,7 +158,7 @@ const CreateRestaurant = ({ setActiveView }) => {
                 name,
                 address,
                 email,
-                latitude, 
+                latitude,
                 longitude,
                 openTime,
                 closeTime,
@@ -188,192 +193,248 @@ const CreateRestaurant = ({ setActiveView }) => {
         }
     };
 
+    // Theme classes
+    const containerClasses = `p-6 rounded-lg shadow-md ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
+        }`;
+
+    const inputClasses = `w-full border px-4 py-2 rounded ${darkMode
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+            : 'bg-white border-gray-300 text-black placeholder-gray-500'
+        }`;
+
+    const disabledInputClasses = `w-full border px-4 py-2 rounded ${darkMode
+            ? 'bg-gray-700 border-gray-600 text-gray-400 cursor-not-allowed'
+            : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed'
+        }`;
+
+    const errorClasses = `col-span-full p-4 mb-4 rounded ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'
+        }`;
+
+    const successClasses = `col-span-full p-4 mb-4 rounded ${darkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700'
+        }`;
+
     return (
-        <div className="text-black bg-white p-6 rounded-lg shadow-md" >
+        <div className={containerClasses}>
             <button
                 onClick={() => setActiveView('join_Us')}
-                className="mb-4 text-primary-600 hover:text-primary-800"
+                className={`mb-4 ${darkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-800'}`}
             >
-                ← Back 
+                ← Back
             </button>
-            <h2 className="text-black text-3xl mb-8 font-semibold text-center">Create Your Restaurant</h2>
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Owner ID */}
-                    <div>
-                    <label className="block mb-1 font-medium">Owner</label>
+            <h2 className={`text-3xl mb-8 font-semibold text-center ${darkMode ? 'text-white' : 'text-black'
+                }`}>
+                Create Your Restaurant
+            </h2>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Owner ID */}
+                <div>
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Owner
+                    </label>
                     <input
                         type="text"
                         name="ownerName"
-                        className="text-black w-full border px-4 py-2 rounded bg-gray-100 cursor-not-allowed"
+                        className={disabledInputClasses}
                         value={form.ownerName}
                         readOnly
                     />
                     {/* Hidden input to still send the ownerId */}
                     <input type="hidden" name="ownerId" value={form.ownerId} />
-                    </div>
-                    {/* Name */}
-                    <div>
-                        <label className="block mb-1 font-medium">Restaurant Name*</label>
-                        <input
-                            type="text"
-                            name="name"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            placeholder="Enter restaurant name"
-                            value={form.name}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                </div>
 
-                    {/* Email */}
-                    <div>
-                        <label className="block mb-1 font-medium">Email*</label>
-                        <input
-                            type="email"
-                            name="email"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            placeholder="Enter email"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                {/* Name */}
+                <div>
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Restaurant Name*
+                    </label>
+                    <input
+                        type="text"
+                        name="name"
+                        className={inputClasses}
+                        placeholder="Enter restaurant name"
+                        value={form.name}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-                    {/* Address */}
-                    <div>
-                        <label className="block mb-1 font-medium">Address*</label>
-                        <input
-                            type="text"
-                            name="address"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            placeholder="Enter address"
-                            value={form.address}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                {/* Email */}
+                <div>
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Email*
+                    </label>
+                    <input
+                        type="email"
+                        name="email"
+                        className={inputClasses}
+                        placeholder="Enter email"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-                    {/* Latitude */}
-                    <div>
-                        <label className="block mb-1 font-medium">Latitude*</label>
-                        <input
-                            type="number"
-                            step="any"
-                            name="latitude"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            placeholder="e.g., 6.9271"
-                            value={form.latitude}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                {/* Address */}
+                <div>
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Address*
+                    </label>
+                    <input
+                        type="text"
+                        name="address"
+                        className={inputClasses}
+                        placeholder="Enter address"
+                        value={form.address}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-                    {/* Longitude */}
-                    <div>
-                        <label className="block mb-1 font-medium">Longitude*</label>
-                        <input
-                            type="number"
-                            step="any"
-                            name="longitude"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            placeholder="e.g., 79.8612"
-                            value={form.longitude}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                {/* Latitude */}
+                <div>
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Latitude*
+                    </label>
+                    <input
+                        type="number"
+                        step="any"
+                        name="latitude"
+                        className={inputClasses}
+                        placeholder="e.g., 6.9271"
+                        value={form.latitude}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-                    {/* Google Map Pin */}
-                    <div className="col-span-full">
-                        <label className="block mb-1 font-medium">Pick a location*</label>
-                        <div className="h-64 w-full mb-4 rounded overflow-hidden" >
-                            <MapContainer
-                                center={[
-                                    parseFloat(form.latitude || '6.9271'),
-                                    parseFloat(form.longitude || '79.8612'),
-                                ]}
-                                zoom={16}
-                            >
-                                <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    attribution="&copy; OpenStreetMap contributors"
-                                />
-                                <LocationPicker setLatLng={setLatLng} />
-                                {form.latitude && form.longitude && (
-                                    <Marker position={[parseFloat(form.latitude), parseFloat(form.longitude)]} />
-                                )}
-                            </MapContainer>
-                        </div>
-                    </div>
-                
+                {/* Longitude */}
+                <div>
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Longitude*
+                    </label>
+                    <input
+                        type="number"
+                        step="any"
+                        name="longitude"
+                        className={inputClasses}
+                        placeholder="e.g., 79.8612"
+                        value={form.longitude}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-                    {/* Open Time */}
-                    <div>
-                    <label className="block font-medium">Open Time*</label>                        
+                {/* Google Map Pin */}
+                <div className="col-span-full">
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Pick a location*
+                    </label>
+                    <div className="h-64 w-full mb-4 rounded overflow-hidden" >
+                        <MapContainer
+                            center={[
+                                parseFloat(form.latitude || '6.9271'),
+                                parseFloat(form.longitude || '79.8612'),
+                            ]}
+                            zoom={16}
+                        >
+                            <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution="&copy; OpenStreetMap contributors"
+                            />
+                            <LocationPicker setLatLng={setLatLng} />
+                            {form.latitude && form.longitude && (
+                                <Marker position={[parseFloat(form.latitude), parseFloat(form.longitude)]} />
+                            )}
+                        </MapContainer>
+                    </div>
+                </div>
+
+                {/* Open Time */}
+                <div>
+                    <label className={`block font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Open Time*
+                    </label>
                     <input
                         type="time"
                         name="openTime"
-                        className="text-black w-full border px-4 py-2 rounded"
+                        className={inputClasses}
                         value={form.openTime}
                         onChange={handleChange}
                         required
                     />
-                    </div>
+                </div>
 
-                    {/* Close Time */}
-                    <div>
-                        <label className="block mb-1 font-medium">Close Time*</label>
-                        <input
-                            type="time"
-                            name="closeTime"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            value={form.closeTime}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                {/* Close Time */}
+                <div>
+                    <label className={`block mb-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Close Time*
+                    </label>
+                    <input
+                        type="time"
+                        name="closeTime"
+                        className={inputClasses}
+                        value={form.closeTime}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-                    {/* Image Upload */}
-                    <div className="col-span-full">
-                        <label className="block font-medium">Restaurant Image*</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="text-black w-full border px-4 py-2 rounded"
-                            onChange={handleImageUpload}
-                        />
-                    </div>
+                {/* Image Upload */}
+                <div className="col-span-full">
+                    <label className={`block font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Restaurant Image*
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className={inputClasses}
+                        onChange={handleImageUpload}
+                    />
+                </div>
 
-                    {/* Error-Success messages */}
-                    {error && (
-                        <div className="col-span-full p-4 mb-4 text-red-700 bg-red-100 rounded">
-                            {error}
-                        </div>
-                    )}
-                    {success && (
-                        <div className="col-span-full p-4 mb-4 text-green-700 bg-green-100 rounded">
-                            Restaurant created successfully!
-                        </div>
-                    )}
-
-                    {/* Submit Button */}
-                    <div className="col-span-full text-center mt-2">
-                        <button
-                            type="submit"
-                            className="bg-primary-800 text-white px-6 py-2 rounded hover:bg-primary-600 transition duration-200 disabled:opacity-50"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Creating...' : 'SignUp and Continue'}
-                        </button>
+                {/* Error-Success messages */}
+                {error && (
+                    <div className={errorClasses}>
+                        {error}
                     </div>
-                </form>            
+                )}
+                {success && (
+                    <div className={successClasses}>
+                        Restaurant created successfully!
+                    </div>
+                )}
+
+                {/* Submit Button */}
+                <div className="col-span-full text-center mt-2">
+                    <button
+                        type="submit"
+                        className={`px-6 py-2 rounded transition duration-200 disabled:opacity-50 ${darkMode
+                                ? 'bg-primary-600 text-white hover:bg-primary-500'
+                                : 'bg-primary-800 text-white hover:bg-primary-600'
+                            }`}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Creating...' : 'SignUp and Continue'}
+                    </button>
+                </div>
+            </form>
         </div>
     );
 };
 
 CreateRestaurant.propTypes = {
-    setActiveView: PropTypes.func.isRequired,  
+    setActiveView: PropTypes.func.isRequired,
 };
 
 export default CreateRestaurant;
-

@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';  
+import { useEffect, useState, useContext } from 'react';
+import PropTypes from 'prop-types';
 import { api } from '../../utils/fetchapi';
-import { SearchIcon } from '@heroicons/react/solid';  
-import EditMenuItem from './EditMenuItem'; 
+import { SearchIcon } from '@heroicons/react/solid';
+import EditMenuItem from './EditMenuItem';
 import AddMenuItem from './AddMenuItem';
 import { Pencil, Trash2 } from 'lucide-react';
+import { ThemeContext } from '../../contexts/ThemeContext';
 
 const MenuItemList = ({ restaurantId }) => {
+    const { darkMode } = useContext(ThemeContext);
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchId, setSearchId] = useState('');
     const [filteredItems, setFilteredItems] = useState([]);
     const [notFoundMessage, setNotFoundMessage] = useState('');
-    const [editingItem, setEditingItem] = useState(null);  
+    const [editingItem, setEditingItem] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
 
     useEffect(() => {
@@ -21,7 +23,7 @@ const MenuItemList = ({ restaurantId }) => {
             try {
                 const res = await api.getMenuItemsByRestaurant(restaurantId);
                 setMenuItems(res?.data?.items || []);
-                setFilteredItems(res?.data?.items || []);  
+                setFilteredItems(res?.data?.items || []);
             } catch (err) {
                 console.error(err);
                 setError('Failed to load menu items');
@@ -35,35 +37,22 @@ const MenuItemList = ({ restaurantId }) => {
 
     useEffect(() => {
         if (searchId) {
-            // Real-time search: Filter items based on search input
             const filtered = menuItems.filter((item) =>
                 item.name.toLowerCase().includes(searchId.toLowerCase())
             );
             setFilteredItems(filtered);
-
-            // Show message if no results are found
-            if (filtered.length === 0) {
-                setNotFoundMessage('No matching menu items found!');
-            } else {
-                setNotFoundMessage('');
-            }
+            setNotFoundMessage(filtered.length === 0 ? 'No matching menu items found!' : '');
         } else {
-            setFilteredItems(menuItems); // Show all items if search is cleared
+            setFilteredItems(menuItems);
             setNotFoundMessage('');
         }
     }, [searchId, menuItems]);
-
-    if (loading) return <div>Loading menu items...</div>;
-    if (error) return <div className="text-red-500">{error}</div>;
-
-    if (!menuItems.length) return <div>No menu items available.</div>;
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this menu item?')) return;
 
         try {
             await api.deleteMenuItem(id);
-            // Remove deleted item from state
             setMenuItems((prev) => prev.filter((item) => item._id !== id));
         } catch (err) {
             console.error('Delete error:', err);
@@ -71,8 +60,37 @@ const MenuItemList = ({ restaurantId }) => {
         }
     };
 
+    if (loading) return (
+        <div className={`flex justify-center items-center h-64 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        </div>
+    );
+
+    if (error) return (
+        <div className={`p-4 ${darkMode ? 'bg-red-900/20 text-red-300' : 'bg-red-100 text-red-700'}`}>
+            {error}
+        </div>
+    );
+
+    if (!menuItems.length) return (
+        <div className={`p-4 ${darkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}>
+            No menu items available.
+        </div>
+    );
+
+    // Theme classes
+    const inputClasses = `border rounded p-2 placeholder-gray-400 w-64 ${darkMode
+            ? 'bg-gray-700 border-gray-600 text-white'
+            : 'bg-white border-gray-300 text-gray-700'
+        }`;
+
+    const cardClasses = `shadow-md rounded-lg p-4 border flex flex-col ${darkMode
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`;
+
     return (
-        <div>
+        <div className={darkMode ? 'bg-gray-900' : 'bg-white'}>
             {/* Edit Menu Item Modal */}
             <EditMenuItem
                 item={editingItem}
@@ -87,9 +105,8 @@ const MenuItemList = ({ restaurantId }) => {
                         formData.append("isAvailable", editingItem.isAvailable.toString());
 
                         if (editingItem.newImage) {
-                            formData.append("image", editingItem.newImage);  
+                            formData.append("image", editingItem.newImage);
                         } else if (editingItem.imageUrls?.length > 0) {
-                            // Send existing image URLs if no new image is selected
                             formData.append("imageUrls", JSON.stringify(editingItem.imageUrls));
                         }
 
@@ -132,58 +149,71 @@ const MenuItemList = ({ restaurantId }) => {
                 />
             )}
 
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-3xl font-bold">Menu</h2>
+            <div className="flex justify-between items-center mb-4 p-4">
+                <h2 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>
+                    Menu
+                </h2>
                 <div className="flex items-center space-x-4">
                     <input
                         type="text"
                         value={searchId}
                         onChange={(e) => setSearchId(e.target.value)}
                         placeholder="Find Something delicious 🤤"
-                        className="border border-gray-300 rounded p-2 text-gray-700 placeholder-gray-400 w-64"
+                        className={inputClasses}
                     />
                     <button
-                        className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 flex items-center"
+                        className={`p-2 rounded flex items-center ${darkMode
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                            }`}
                     >
                         <SearchIcon className="w-5 h-5" />
                     </button>
-                    {/* Add Item Button */}
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+                        className={`p-2 rounded ${darkMode
+                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                : 'bg-green-500 hover:bg-green-600 text-white'
+                            }`}
                     >
                         Add Item
                     </button>
                 </div>
             </div>
 
-            {/* Display not found message */}
-            {notFoundMessage && <div className="text-red-500 mb-4">{notFoundMessage}</div>}
+            {notFoundMessage && (
+                <div className={`p-4 mb-4 ${darkMode ? 'bg-yellow-900/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {notFoundMessage}
+                </div>
+            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
                 {filteredItems.map((item) => (
-                    <div
-                        key={item._id}
-                        className="bg-white shadow-md rounded-lg p-4 border border-gray-200"
-                    >
+                    <div key={item._id} className={cardClasses}>
                         <div className="flex justify-between items-start">
-                            <h3 className="mb-2 text-lg sm:text-xl font-semibold text-black">{item.name}</h3>
-                            <div className="flex gap-2">                        
-                            <button
-                                onClick={() => setEditingItem(item)} // Open edit modal
-                                className="text-blue-600 hover:text-blue-800"
-                            >
-                                <Pencil className="w-5 h-5 text-blue-600 hover:text-blue-800" />
-                            </button>
-                            <button
-                                onClick={() => handleDelete(item._id)}
-                                className="text-red-600 hover:text-red-800 flex items-center gap-1"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
+                            <h3 className={`mb-2 text-lg sm:text-xl font-semibold ${darkMode ? 'text-white' : 'text-black'
+                                }`}>
+                                {item.name}
+                            </h3>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setEditingItem(item)}
+                                    className={darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}
+                                >
+                                    <Pencil className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(item._id)}
+                                    className={darkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-800'}
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
-                        </div>                        
-                        <p className="text-green-600 font-bold mt-2">${item.price.toFixed(2)}</p>
+                        <p className={`font-bold mt-2 ${darkMode ? 'text-green-400' : 'text-green-600'
+                            }`}>
+                            ${item.price.toFixed(2)}
+                        </p>
                         {item.imageUrls?.length > 0 && (
                             <img
                                 src={item.imageUrls[0]}
@@ -191,7 +221,10 @@ const MenuItemList = ({ restaurantId }) => {
                                 className="mt-4 w-full h-48 object-cover rounded"
                             />
                         )}
-                        <p className={`mt-2 text-sm ${item.isAvailable ? 'text-green-500' : 'text-red-500'}`}>
+                        <p className={`mt-2 text-sm ${item.isAvailable
+                                ? (darkMode ? 'text-green-400' : 'text-green-500')
+                                : (darkMode ? 'text-red-400' : 'text-red-500')
+                            }`}>
                             {item.isAvailable ? 'Available' : 'Not Available'}
                         </p>
                     </div>
@@ -201,9 +234,8 @@ const MenuItemList = ({ restaurantId }) => {
     );
 };
 
-// Prop validation for restaurantId
 MenuItemList.propTypes = {
-    restaurantId: PropTypes.string.isRequired, 
+    restaurantId: PropTypes.string.isRequired,
 };
 
 export default MenuItemList;
