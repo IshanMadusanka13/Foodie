@@ -58,6 +58,7 @@ const RestaurantProfileRA = () => {
                 return (
                     <MenuItemList
                         restaurantId={id}
+                        menuItems={menuItems}
                         quantities={quantities}
                         onQuantityChange={handleQuantityChange}
                     />
