@@ -1,6 +1,7 @@
 import { IDeliveryService } from '../DeliveryService';
 import Delivery, { IDelivery } from '../../models/Delivery';
 import logger from '../../config/logger';
+import axios from 'axios';
 
 export class DeliveryService implements IDeliveryService {
   async createDelivery(deliveryData: Partial<IDelivery>): Promise<IDelivery> {
@@ -12,7 +13,7 @@ export class DeliveryService implements IDeliveryService {
         delivery_id,
         status: 'pending'
       });
-      
+
       const savedDelivery = await newDelivery.save();
       logger.info({ delivery_id }, 'Delivery created successfully');
       return savedDelivery;
@@ -56,18 +57,18 @@ export class DeliveryService implements IDeliveryService {
       // Find pending deliveries with restaurant location within maxDistance (in meters)
       // This is a simplified approach - in a real app, you'd use geospatial queries
       const deliveries = await Delivery.find({ status: 'pending' });
-      
+
       // Filter deliveries based on distance
       const nearbyDeliveries = deliveries.filter(delivery => {
         const distance = this.calculateDistance(
-          latitude, 
-          longitude, 
-          delivery.restaurant_location.latitude, 
+          latitude,
+          longitude,
+          delivery.restaurant_location.latitude,
           delivery.restaurant_location.longitude
         );
         return distance <= maxDistance;
       });
-      
+
       logger.info(`Found ${nearbyDeliveries.length} nearby deliveries`);
       return nearbyDeliveries;
     } catch (error) {
@@ -81,20 +82,20 @@ export class DeliveryService implements IDeliveryService {
     try {
       const delivery = await Delivery.findOneAndUpdate(
         { delivery_id: deliveryId, status: 'pending' },
-        { 
-          rider_id: riderId, 
+        {
+          rider_id: riderId,
           status: 'accepted',
           accepted_at: new Date()
         },
         { new: true }
       );
-      
+
       if (delivery) {
         logger.info('Delivery accepted successfully');
       } else {
         logger.warn('Delivery not found or already accepted');
       }
-      
+
       return delivery;
     } catch (error) {
       logger.error({ error, deliveryId, riderId }, 'Error accepting delivery');
@@ -106,26 +107,26 @@ export class DeliveryService implements IDeliveryService {
     logger.info({ deliveryId, status }, 'Updating delivery status');
     try {
       const updateData: any = { status };
-      
+
       // Add timestamp based on status
       if (status === 'collected') {
         updateData.collected_at = timestamp;
       } else if (status === 'delivered') {
         updateData.delivered_at = timestamp;
       }
-      
+
       const delivery = await Delivery.findOneAndUpdate(
         { delivery_id: deliveryId },
         updateData,
         { new: true }
       );
-      
+
       if (delivery) {
         logger.info(`Delivery status updated to ${status}`);
       } else {
         logger.warn('Delivery not found for status update');
       }
-      
+
       return delivery;
     } catch (error) {
       logger.error({ error, deliveryId, status }, 'Error updating delivery status');
@@ -169,7 +170,7 @@ export class DeliveryService implements IDeliveryService {
         logger.warn('Delivery not found or not in pending status');
         return null;
       }
-  
+
       // 2. Find available riders within a reasonable distance
       // This would require a User service call to get riders
       // For now, we'll simulate with a direct DB query
@@ -177,19 +178,19 @@ export class DeliveryService implements IDeliveryService {
         delivery.restaurant_location.latitude,
         delivery.restaurant_location.longitude
       );
-  
+
       if (availableRiders.length === 0) {
         logger.warn('No available riders found nearby');
         return null;
       }
-  
+
       // 3. Select the closest rider
       const closestRider = this.findClosestRider(
         availableRiders,
         delivery.restaurant_location.latitude,
         delivery.restaurant_location.longitude
       );
-  
+
       // 4. Assign the delivery to the rider
       return await this.acceptDelivery(deliveryId, closestRider.user_id);
     } catch (error) {
@@ -197,77 +198,69 @@ export class DeliveryService implements IDeliveryService {
       throw error;
     }
   }
-  
+
   // Helper method to find available riders near a location
   // In a real implementation, this would call the User service
   // Modify the findAvailableRidersNear method to fetch real riders
-private async findAvailableRidersNear(latitude: number, longitude: number, maxDistance: number = 5000): Promise<any[]> {
-  try {
-    // In a real implementation, this would call the User service
-    // Make an HTTP request to the User service to get available riders
-    const response = await fetch(`${process.env.USER_SERVICE_URL || 'http://localhost:5000'}/api/users/riders/available`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+  private async findAvailableRidersNear(latitude: number, longitude: number, maxDistance: number = 5000): Promise<any[]> {
+    try {
+      const response = await axios.post('http://localhost:5000/api/users/riders/available', {
         latitude,
         longitude,
         maxDistance
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch available riders');
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      return response.data as any[];
+    } catch (error) {
+      logger.error({ error }, 'Error fetching available riders');
+      // Fallback to dummy data if the service is unavailable
+      return [
+        { user_id: 'R001', name: 'John Rider', latitude: latitude + 0.01, longitude: longitude - 0.01 },
+        { user_id: 'R002', name: 'Alice Driver', latitude: latitude - 0.005, longitude: longitude + 0.008 }
+      ];
     }
-    
-    const riders = await response.json() as any[];
-    return riders;
-  } catch (error) {
-    logger.error({ error }, 'Error fetching available riders');
-    // Fallback to dummy data if the service is unavailable
-    return [
-      { user_id: 'R001', name: 'John Rider', latitude: latitude + 0.01, longitude: longitude - 0.01 },
-      { user_id: 'R002', name: 'Alice Driver', latitude: latitude - 0.005, longitude: longitude + 0.008 }
-    ];
   }
-}
-  
+
+
   // Helper method to find the closest rider
   private findClosestRider(riders: any[], targetLat: number, targetLon: number): any {
     let closestRider = riders[0];
     let minDistance = this.calculateDistance(
-      targetLat, targetLon, 
+      targetLat, targetLon,
       riders[0].latitude, riders[0].longitude
     );
-  
+
     for (let i = 1; i < riders.length; i++) {
       const distance = this.calculateDistance(
         targetLat, targetLon,
         riders[i].latitude, riders[i].longitude
       );
-      
+
       if (distance < minDistance) {
         minDistance = distance;
         closestRider = riders[i];
       }
     }
-  
+
     return closestRider;
   }
 
   // Helper method to calculate distance between two points using Haversine formula
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // Distance in meters
   }

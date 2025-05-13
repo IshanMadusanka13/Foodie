@@ -45,8 +45,6 @@ const DeliverLocation = () => {
     const [orderDetails, setOrderDetails] = useState({});
 
     useEffect(() => {
-
-
         localStorage.setItem("orderDetails", JSON.stringify({
             restaurantId: 'rest123',
             restaurantName: 'Delicious Bites',
@@ -59,7 +57,6 @@ const DeliverLocation = () => {
             ]
         }))
 
-
         if (!localStorage.getItem("orderDetails")) {
             navigate("/");
         } else {
@@ -69,7 +66,7 @@ const DeliverLocation = () => {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    setPosition({ lat: 6.716215, lng: 79.909577 });
+                    setPosition({ lat: latitude, lng: longitude });
                     fetchAddress(latitude, longitude);
                     setLoading(false);
                 },

@@ -30,7 +30,7 @@ export class PaymentService implements IPaymentService {
                 },
             ],
             mode: 'payment',
-            success_url: 'http://localhost:5173/order?status=success',
+            success_url: 'http://localhost:5173/order?status=success&customer='+paymentInfo.customer,
             cancel_url: 'http://localhost:5173/order?status=failed',
         });
         return paymentLink.url;

@@ -11,6 +11,7 @@ const Order = () => {
   const { darkMode } = useContext(ThemeContext);
   const [searchParams] = useSearchParams();
   const status = searchParams.get('status');
+  const customerId = searchParams.get('customer');
   const [orderCreated, setOrderCreated] = useState(false);
   const [paymentFailed, setPaymentFailed] = useState(false);
 
@@ -52,7 +53,7 @@ const Order = () => {
     });
 
     if (paymentMethod == "cash") {
-      createOrder();
+      createOrder(currentUser?.user_id);
     } else {
       setIsLoading(true)
       api.createPaymentLink({
@@ -75,9 +76,9 @@ const Order = () => {
     setOrderComplete(true)
   };
 
-  const createOrder = () => {
+  const createOrder = (userid) => {
     api.createOrder({
-      customer: currentUser?.user_id,
+      customer: userid,
       restaurant: orderDetails.restaurantId,
       restaurantLocation: orderDetails.restaurantLocation,
       customerLocation: orderDetails.customerLocation,
@@ -97,11 +98,10 @@ const Order = () => {
     if (status && !orderCreated) {
       console.log(status);
       if (status == "success") {
-        createOrder();
+        createOrder(customerId);
         setOrderComplete(true);
         setOrderCreated(true);
       } else if (status == "failed" || status == "cancel") {
-        console.log("innnn");
         setPaymentFailed(true);
       }
     }

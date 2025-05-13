@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PaymentService } from '../services/impl/PaymentServicceImpl';
+import { PaymentService } from '../services/impl/PaymentServiceImpl';
 import logger from '../config/logger';
 
 const paymentService = new PaymentService();
