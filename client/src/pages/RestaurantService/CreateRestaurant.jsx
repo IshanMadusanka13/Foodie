@@ -1,7 +1,6 @@
 // External Libraries
-import { Fragment, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Dialog } from '@headlessui/react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { v4 as uuidv4 } from 'uuid';
@@ -70,7 +69,6 @@ const CreateRestaurant = ({ setActiveView }) => {
         }
     }, [currentUser]);
 
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);

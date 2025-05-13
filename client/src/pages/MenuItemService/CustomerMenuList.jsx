@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import api from '../../utils/fetchapi';
 import {
     SearchIcon,
@@ -8,8 +8,10 @@ import {
 import { FaMapMarkerAlt, FaShoppingCart } from "react-icons/fa";
 import Cart from '../Cart';
 import { usePersistedCart } from '../../hooks/usePersistedCart';
+import { ThemeContext } from '../../contexts/ThemeContext';
 
 const CustomerMenuList = () => {
+    const { darkMode, setTheme } = useContext(ThemeContext);
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -132,20 +134,20 @@ const CustomerMenuList = () => {
         setCurrentPage(1);
     }, [searchId, selectedCategory]);
 
-    if (loading) return <div>Loading menu items...</div>;
-    if (error) return <div className="text-red-500">{error}</div>;
-    if (!menuItems.length) return <div>No menu items available.</div>;
+    if (loading) return <div className="text-center text-gray-600 dark:text-gray-300">Loading menu items...</div>;
+    if (error) return <div className="text-red-500 dark:text-red-400">{error}</div>;
+    if (!menuItems.length) return <div className="text-gray-600 dark:text-gray-300">No menu items available.</div>;
 
     return (
-        <div className="flex-1 overflow-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-                <div className="p-4 bg-white">
+        <div className={`flex-1 overflow-auto ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+            <div className={`flex flex-col md:flex-row justify-between items-center gap-4 w-full ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+                <div className={`p-4 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                     {/* Location and Search Section */}
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-                        <div className="border flex items-center space-x-4 bg-white px-6 py-3 shadow-md w-full md:w-1/2">
+                        <div className={`border flex items-center space-x-4 ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'} px-6 py-3 shadow-md w-full md:w-1/2`}>
                             <FaMapMarkerAlt className="text-primary-500 mr-2" />
                             <div className="flex-1">
-                                <p className="text-sm text-gray-600">{location}</p>
+                                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{location}</p>
                             </div>
                             <button className="text-primary-500 text-sm font-semibold">Change</button>
                         </div>
@@ -156,7 +158,7 @@ const CustomerMenuList = () => {
                                 value={searchId}
                                 onChange={(e) => setSearchId(e.target.value)}
                                 placeholder="Find Something delicious 🤤"
-                                className="border border-gray-300 rounded p-2 text-gray-700 placeholder-gray-400 w-full"
+                                className={`border ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-700 placeholder-gray-400'} rounded p-2 w-full`}
                             />
                             <button className="bg-primary-500 text-white p-2 rounded hover:bg-primary-900 flex items-center">
                                 <SearchIcon className="w-5 h-5" />
@@ -177,14 +179,14 @@ const CustomerMenuList = () => {
                                     flex items-center gap-2 px-4 py-2 min-w-fit rounded-3xl text-sm font-medium
                                     transition duration-200 border shadow-sm
                                     ${!selectedCategory
-                                        ? 'bg-gray-200 border-primary-400 border-2 text-black border-blue-700 shadow-md'
-                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-150'}
+                                        ? (darkMode ? 'bg-gray-600 border-primary-400 border-2 text-white' : 'bg-gray-200 border-primary-400 border-2 text-black border-blue-700 shadow-md')
+                                        : (darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-50 text-gray-700 hover:bg-gray-150')}
                                     `}
                             >
                                 <div className="flex flex-col items-center">
                                     <span className="text-lg">🍽️</span>
                                     <span className="text-xs sm:text-sm">All</span>
-                                </div>                                
+                                </div>
                             </button>
                         )}
 
@@ -203,12 +205,12 @@ const CustomerMenuList = () => {
                                             setNotFoundMessage(filtered.length ? '' : `No items found in "${cat.name}" category.`);
                                         }}
                                         className={`
-                                                flex items-center gap-2 px-4 py-2 min-w-fit rounded-3xl text-sm font-medium
-                                                transition duration-200 border shadow-sm
-                                                ${isSelected
-                                                ? 'bg-gray-200 border-primary-400 border-2 text-black border-blue-700 shadow-md'
-                                                : 'bg-gray-50 text-gray-700 hover:bg-gray-150'}
-                                                `}
+                                            flex items-center gap-2 px-4 py-2 min-w-fit rounded-3xl text-sm font-medium
+                                            transition duration-200 border shadow-sm
+                                            ${isSelected
+                                                ? (darkMode ? 'bg-gray-600 border-primary-400 border-2 text-white' : 'bg-gray-200 border-primary-400 border-2 text-black border-blue-700 shadow-md')
+                                                : (darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-50 text-gray-700 hover:bg-gray-150')}
+                                            `}
                                     >
                                         <div className="flex flex-col items-center">
                                             <span className="text-lg">{cat.icon}</span>
@@ -219,19 +221,19 @@ const CustomerMenuList = () => {
                             })}
                     </div>
 
-                    {notFoundMessage && <div className="text-red-500 mb-4">{notFoundMessage}</div>}
+                    {notFoundMessage && <div className={`mb-4 ${darkMode ? 'text-red-400' : 'text-red-500'}`}>{notFoundMessage}</div>}
 
                     {/* Menu Items */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {paginatedItems.map((item) => (
-                            <div key={item._id} className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
+                            <div key={item._id} className={`shadow-md rounded-lg p-4 border ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}`}>
                                 <div className="flex justify-between items-center">
-                                    <h2 className="text-xl text-black font-semibold">{item.name}</h2>
+                                    <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{item.name}</h2>
                                     <h3 className="text-primary-600 font-bold">
                                         {restaurantMap[item.restaurantId?._id] || 'Unknown Restaurant'}
                                     </h3>
                                 </div>
-                                <p className="text-gray-600">{item.description}</p>
+                                <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>{item.description}</p>
                                 <p className="text-green-600 font-bold mt-2">${item.price.toFixed(2)}</p>
                                 {item.imageUrls?.length > 0 && (
                                     <img
@@ -247,19 +249,19 @@ const CustomerMenuList = () => {
                                     </p>
 
                                     {quantities[item._id] > 0 ? (
-                                        <div className="bg-gray-200 text-black flex items-center border border-gray-300 rounded-lg">
+                                        <div className={`${darkMode ? 'bg-gray-600 text-white' : 'bg-gray-200 text-black'} flex items-center border ${darkMode ? 'border-gray-500' : 'border-gray-300'} rounded-lg`}>
                                             <button
                                                 onClick={() => handleQuantityChange(item._id, -1)}
-                                                className="px-3 py-1 border-r border-gray-300 text-black"
+                                                className={`px-3 py-1 border-r ${darkMode ? 'border-gray-500 text-white' : 'border-gray-300 text-black'}`}
                                             >
                                                 -
                                             </button>
-                                            <span className="px-4 text-lg font-semibold border-r border-gray-300">
+                                            <span className={`px-4 text-lg font-semibold border-r ${darkMode ? 'border-gray-500' : 'border-gray-300'}`}>
                                                 {quantities[item._id]}
                                             </span>
                                             <button
                                                 onClick={() => handleQuantityChange(item._id, 1)}
-                                                className="px-3 py-1 text-black"
+                                                className={`px-3 py-1 ${darkMode ? 'text-white' : 'text-black'}`}
                                             >
                                                 +
                                             </button>
@@ -287,7 +289,7 @@ const CustomerMenuList = () => {
                             <ChevronLeftIcon className="h-6 w-6" />
                         </button>
 
-                        <span className="text-gray-700">
+                        <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
                             Page {currentPage} of {totalPages}
                         </span>
 
@@ -316,20 +318,21 @@ const CustomerMenuList = () => {
                     {/* Cart Modal */}
                     {showCart && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                            <div className={`p-6 rounded-lg w-full max-w-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                                 <div className="flex justify-between items-center mb-4">
-                                    <h2 className="text-primary-600 text-xl font-bold">Cart</h2>
+                                    <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-primary-600'}`}>Cart</h2>
                                     <button
                                         onClick={() => setShowCart(false)}
-                                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                                        className={`text-2xl ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
                                     >
                                         &times;
                                     </button>
                                 </div>
-                                <Cart 
-                                    cartItems={cart} 
-                                    onClearSelected={clearSelectedItems} 
+                                <Cart
+                                    cartItems={cart}
+                                    onClearSelected={clearSelectedItems}
                                     onQuantityChange={handleQuantityChange}
+                                    darkMode={darkMode}
                                 />
                             </div>
                         </div>
@@ -341,4 +344,3 @@ const CustomerMenuList = () => {
 };
 
 export default CustomerMenuList;
-
