@@ -1,17 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../../utils/fetchapi';
 import MenuItemCategory from '../MenuItemService/MenuItemCategory';
 import { FaShoppingCart } from "react-icons/fa";
 import Cart from '../Cart';
 import { usePersistedCart } from '../../hooks/usePersistedCart';
+import { ThemeContext } from '../../contexts/ThemeContext';
 
 const RestaurantProfile = () => {
     const { id } = useParams();
+    const { darkMode, setTheme } = useContext(ThemeContext);
     const [restaurant, setRestaurant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeSection, setActiveSection] = useState('categories');
     const [menuItems, setMenuItems] = useState([]);
 
     // Cart state
@@ -88,32 +89,8 @@ const RestaurantProfile = () => {
     if (error) return <div className="p-8 text-red-500">{error}</div>;
     if (!restaurant) return <div className="p-8">Restaurant not found</div>;
 
-    const renderSectionContent = () => {
-        switch (activeSection) {
-            case 'categories':
-                return (
-                    <MenuItemCategory
-                        restaurantId={id}
-                        quantities={quantities}
-                        onQuantityChange={handleQuantityChange}
-                        cart={cart}
-                        setCart={setCart}
-                        showCart={showCart}
-                        setShowCart={setShowCart}
-                    />
-                );
-            default:
-                return (
-                    <div>
-                        <h2 className="text-2xl font-semibold">Overview</h2>
-                        <p>{restaurant.description}</p>
-                    </div>
-                );
-        }
-    };
-
     return (
-        <div className="bg-white">
+        <div className={`px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="flex flex-col items-center">
                 {/* Restaurant Header Section */}
                 <div className="flex justify-between gap-6">
@@ -141,24 +118,17 @@ const RestaurantProfile = () => {
                 </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 max-w-6xl mx-auto px-6">                    
-                    <button
-                        onClick={() => setActiveSection('categories')}
-                        className={`py-4 px-1 font-medium text-sm border-b-2 ${activeSection === 'categories'  //button color hidden with white
-                            ? 'border-white text-primary-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                    >
-                        {/* Categories */}
-                    </button>                    
-                </nav>
-            </div>
-
             {/* Main Content */}
             <div className="max-w-6xl mx-auto p-6">
-                {renderSectionContent()}
+            <MenuItemCategory
+                    restaurantId={id}
+                    quantities={quantities}
+                    onQuantityChange={handleQuantityChange}
+                    cart={cart}
+                    setCart={setCart}
+                    showCart={showCart}
+                    setShowCart={setShowCart}
+                />
             </div>
 
             {/* Cart Icon - Fixed position */}
@@ -177,7 +147,7 @@ const RestaurantProfile = () => {
             {/* Cart Modal */}
             {showCart && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                    <div className={`bg-white p-6 rounded-lg w-full max-w-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-primary-600 text-xl font-bold">Cart</h2>
                             <button

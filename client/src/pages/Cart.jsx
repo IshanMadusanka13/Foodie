@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
+import { ThemeContext } from '../contexts/ThemeContext'; // adjust the path as necessary
 
-const Cart = ({ cartItems, onClearSelected, onQuantityChange, darkMode = false }) => {
+const Cart = ({ cartItems, onClearSelected, onQuantityChange }) => {
+    const { darkMode } = useContext(ThemeContext); // Use ThemeContext
+
     const [selectedItems, setSelectedItems] = useState([]);
 
-    // Automatically update selection if cartItems change
     useEffect(() => {
         setSelectedItems((prevSelected) =>
             prevSelected.filter((id) => cartItems.some((item) => item.itemId === id))
@@ -26,9 +28,9 @@ const Cart = ({ cartItems, onClearSelected, onQuantityChange, darkMode = false }
 
     const handleSelectAll = () => {
         if (selectedItems.length === cartItems.length) {
-            setSelectedItems([]); // Deselect all
+            setSelectedItems([]);
         } else {
-            setSelectedItems(cartItems.map((item) => item.itemId)); // Select all
+            setSelectedItems(cartItems.map((item) => item.itemId));
         }
     };
 
@@ -39,7 +41,7 @@ const Cart = ({ cartItems, onClearSelected, onQuantityChange, darkMode = false }
         cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
     return (
-        <div className={`divide-y ${darkMode ? 'divide-gray-600 text-white' : 'divide-gray-200 text-black'}`}>
+        <div className={`divide-y ${darkMode ? 'divide-gray-600 text-white bg-gray-800' : 'divide-gray-200 text-black'}`}>
             {isCartEmpty ? (
                 <p className={`p-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Your cart is empty.</p>
             ) : (
@@ -103,12 +105,12 @@ const Cart = ({ cartItems, onClearSelected, onQuantityChange, darkMode = false }
                             <button
                                 onClick={handleClearSelected}
                                 className={`flex-1 py-2 rounded transition ${darkMode
-                                        ? selectedItems.length === 0
-                                            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                            : 'bg-gray-600 text-white hover:bg-gray-500'
-                                        : selectedItems.length === 0
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                    ? selectedItems.length === 0
+                                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                        : 'bg-gray-600 text-white hover:bg-gray-500'
+                                    : selectedItems.length === 0
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                                     }`}
                                 disabled={selectedItems.length === 0}
                             >
@@ -138,11 +140,6 @@ Cart.propTypes = {
     ).isRequired,
     onClearSelected: PropTypes.func.isRequired,
     onQuantityChange: PropTypes.func.isRequired,
-    darkMode: PropTypes.bool,
-};
-
-Cart.defaultProps = {
-    darkMode: false,
 };
 
 export default Cart;
