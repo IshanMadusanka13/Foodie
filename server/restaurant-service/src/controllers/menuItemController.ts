@@ -1,195 +1,109 @@
-import { Request, Response, NextFunction } from 'express';
-import MenuItemService from '../services/menuItemService';
-import MenuItem from '../models/MenuItem';
-import { uploadImagesToSupabase } from '../utils/supabaseUpload';
+import { Request, Response } from 'express';
+import MenuItemServiceImpl from '../services/impl/MenuItemServiceImpl';
 
-interface MulterRequest extends Request {
-    files?: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] };
+const menuItemService = new MenuItemServiceImpl();
+
+class MenuItemController {
+
+  createMenuItem = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const menuItemData = req.body;
+      const menuItem = await menuItemService.createMenuItem(menuItemData);
+      res.status(201).json(menuItem);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Failed to create menu item' });
+    }
+  };
+
+  getMenuItemsByRestaurant = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { restaurantId } = req.params;
+      const filters = req.query.filters ? JSON.parse(String(req.query.filters)) : {};
+      
+      const menuItems = await menuItemService.getMenuItemsByRestaurant(restaurantId, filters);
+      res.status(200).json(menuItems);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Failed to get menu items' });
+    }
+  };
+
+  getMenuItemsByCategory = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { category } = req.params;
+      const menuItems = await menuItemService.getMenuItemsByCategory(category);
+      res.status(200).json(menuItems);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Failed to get menu items by category' });
+    }
+  };
+
+  getMenuItemById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const menuItem = await menuItemService.getMenuItemById(id);
+      
+      if (!menuItem) {
+        res.status(404).json({ error: 'Menu item not found' });
+        return;
+      }
+      
+      res.status(200).json(menuItem);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Failed to get menu item' });
+    }
+  };
+
+  updateMenuItem = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const updatedMenuItem = await menuItemService.updateMenuItem(id, updateData);
+      res.status(200).json(updatedMenuItem);
+    } catch (error: any) {
+      if (error.message === 'Menu item not found') {
+        res.status(404).json({ error: error.message });
+      } else {
+        res.status(400).json({ error: error.message || 'Failed to update menu item' });
+      }
+    }
+  };
+
+  deleteMenuItem = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const result = await menuItemService.deleteMenuItem(id);
+      res.status(200).json(result);
+    } catch (error: any) {
+      if (error.message === 'Menu Item not Found') {
+        res.status(404).json({ error: error.message });
+      } else {
+        res.status(400).json({ error: error.message || 'Failed to delete menu item' });
+      }
+    }
+  };
+
+  getPaginatedMenuItems = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { restaurantId } = req.params;
+      const page = req.query.page ? parseInt(String(req.query.page)) : 1;
+      const limit = req.query.limit ? parseInt(String(req.query.limit)) : 10;
+      const search = req.query.search ? String(req.query.search) : '';
+      const filters = req.query.filters ? JSON.parse(String(req.query.filters)) : {};
+      
+      const paginatedResult = await menuItemService.getPaginatedMenuItems(
+        restaurantId,
+        filters,
+        page,
+        limit,
+        search
+      );
+      
+      res.status(200).json(paginatedResult);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Failed to get paginated menu items' });
+    }
+  };
 }
 
-const createMenuItem = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const price = parseFloat(req.body.price);
-        if (isNaN(price) || price < 0) {
-            res.status(400).json({ status: 'Error', message: 'Invalid price. Price must be a number ≥ 0.' });
-        }
-
-        const files = req.files as Express.Multer.File[];
-        const imageUrls = files ? await uploadImagesToSupabase(files, 'menu-items') : [];
-
-        const menuItem = await MenuItemService.createMenuItem({
-            ...req.body,
-            price,
-            imageUrls
-        });
-
-        res.status(201).json({ status: 'Success', data: { menuItem } });
-    } catch (error: any) {
-        res.status(400).json({ status: 'Error', message: error.message });
-    }
-};
-
-const updateMenuItem = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const price = parseFloat(req.body.price);
-        if (!isNaN(price) && price < 0) {
-            res.status(400).json({ status: 'Error', message: 'Invalid price. Price must be ≥ 0.' });
-            return;
-        }
-
-        const file = req.file as Express.Multer.File | undefined;
-        let imageUrls: string[] = [];
-
-        if (file) {
-            imageUrls = await uploadImagesToSupabase([file], 'MenuItems');
-        } else if (req.body.imageUrls) {
-            try {
-                const parsed = JSON.parse(req.body.imageUrls);
-                imageUrls = Array.isArray(parsed) ? parsed : [parsed];
-            } catch {
-                imageUrls = [req.body.imageUrls];
-            }
-        }
-
-        // If no images provided AND imageUrls is still empty, use default
-        if (imageUrls.length === 0) {
-            imageUrls = [
-                'https://waymjbgcpfbxrjxrlizr.supabase.co/storage/v1/object/public/foodie/Restaurants/default_restaurant.png',
-            ];
-        }
-
-        const updateData: any = {
-            ...req.body,
-            ...(imageUrls.length > 0 && { imageUrls }),
-        };
-
-        const item = await MenuItemService.updateMenuItem(req.params.id, updateData);
-        console.log("Updated Menu Item:", item);
-        res.status(200).json({ status: 'Success', data: { item } });
-    } catch (error: any) {
-        res.status(error.message?.includes('not found') ? 404 : 400).json({ status: 'Error', message: error.message });
-    }
-};
-
-const getMenuItemsByRestaurant = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const { available, category } = req.query;
-
-        const filters: Record<string, any> = {};
-        if (available) filters.isAvailable = available === 'true';
-        if (category) filters.category = category;
-
-        const items = await MenuItemService.getMenuItemsByRestaurant(req.params.restaurantId, filters);
-        res.status(200).json({ status: 'Success', data: { items } });
-    } catch (error) {
-        next(error);
-    }
-};
-
-const getMenuItemsByCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const { category } = req.query;
-        console.log("Category being queried:", category);
-
-        if (!category || typeof category !== 'string') {
-            res.status(400).json({ status: 'Error', message: 'Category is required' });
-            return;
-        }
-        const items = await MenuItemService.getMenuItemsByCategory(category);
-        console.log("Found items:", items); 
-        res.status(200).json({ status: 'Success', data: { items } });
-    } catch (error) {
-        next(error);
-    }
-};
-
-const getMenuItemById = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const item = await MenuItemService.getMenuItemById(req.params.id);
-        if (!item) {
-            res.status(404).json({ status: 'Error', message: 'Menu item not found' });
-            return;
-        }
-        res.status(200).json({ status: 'Success', data: { item } });
-    } catch (error) {
-        res.status(400).json({ status: 'Error', message: 'Invalid ID format' });
-    }
-};
-
-const getAllMenuItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const items = await MenuItem.find().populate('restaurantId', 'name address');
-        res.status(200).json({ status: 'Success', data: { items } });
-    } catch (error) {
-        next(error);
-    }
-};
-
-const deleteMenuItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const result = await MenuItemService.deleteMenuItem(req.params.id);
-        res.status(200).json({ status: 'Success', data: { result } });
-    } catch (error) {
-        next(error);
-    }
-};
-
-const getPaginatedMenuItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
-        const search = (req.query.search as string) || "";
-
-        const { available, category} = req.query;
-
-        const filters: Record<string, any> = {};
-        if (available) filters.isAvailable = available === 'true';
-        if (category) filters.category = category;
-
-        const result = await MenuItemService.getPaginatedMenuItems(
-            req.params.restaurantId,
-            filters,
-            page,
-            limit,
-            search || ""
-        );
-
-        res.status(200).json({ status: 'Success', data: result });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-const uploadMultipleImages = async (req: MulterRequest, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const files = req.files as Express.Multer.File[];
-
-        if (!files || !Array.isArray(files) || files.length === 0) {
-            res.status(400).json({ error: 'No images uploaded' });
-            return;
-        }
-
-        const imageUrls = await uploadImagesToSupabase(files, 'menu-items');
-
-        res.status(200).json({
-            message: 'Images uploaded successfully',
-            imageUrls
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-export default {
-    createMenuItem,
-    getMenuItemsByRestaurant,
-    getAllMenuItems,
-    getMenuItemById,
-    getMenuItemsByCategory,
-    updateMenuItem,
-    deleteMenuItem,
-    getPaginatedMenuItems,
-    uploadMultipleImages
-};
+export default MenuItemController;

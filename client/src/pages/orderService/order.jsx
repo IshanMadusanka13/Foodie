@@ -30,7 +30,7 @@ const Order = () => {
     return sum + (item.menuItemPrice * item.qty);
   }, 0);
 
-  const deliveryFee = 150 * orderDetails.deliveryDistance;
+  const deliveryFee = 100 + (30 * orderDetails.deliveryDistance);
   const total = subtotal + deliveryFee;
 
   const handlePaymentMethodChange = (e) => {
@@ -88,6 +88,8 @@ const Order = () => {
       deliveryFee,
       total
     });
+
+    localStorage.removeItem("orderDetails")
   };
 
   const handleBackToHome = () => {

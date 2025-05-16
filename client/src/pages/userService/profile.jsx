@@ -12,6 +12,9 @@ import DeliveryDetails from '../../components/profileComponents/DeliveryDetails'
 import LoadingProfile from '../../components/profileComponents/LoadingProfile';
 import SuccessMessage from '../../components/profileComponents/SuccessMessage';
 import { Camera, Shield } from 'lucide-react';
+import RestaurantDetails from '../../components/profileComponents/RestaurantDetails';
+import MenuItems from '../../components/profileComponents/MenuItems';
+import UnverifiedRestaurants from '../../components/profileComponents/UnverifiedRestaurants';
 
 const supabaseUrl = 'https://nelqemsnxiomtaosceui.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lbHFlbXNueGlvbXRhb3NjZXVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4NTA1OTEsImV4cCI6MjA2MTQyNjU5MX0.blyjPV4hGnAQpaCyWJD1LAljPt5SWa8o4SxvWEAGAUU';
@@ -27,40 +30,14 @@ const Profile = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [selectedDelivery, setSelectedDelivery] = useState(null);
     const [deliveries, setDeliveries] = useState([]);
+    const [restaurant, setRestaurant] = useState(null);
+    const [menuItems, setMenuItems] = useState([]);
+    const [isEditingRestaurant, setIsEditingRestaurant] = useState(false);
+    const [isAddingMenuItem, setIsAddingMenuItem] = useState(false);
+    const [editingMenuItem, setEditingMenuItem] = useState(null);
+    const [unverifiedRestaurants, setUnverifiedRestaurants] = useState([]);
+
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if (authLoading) return;
-
-        setLoading(true);
-        const timer = setTimeout(() => {
-            if (currentUser) {
-                setFormData({
-                    user_id: currentUser.user_id || '',
-                    name: currentUser.name || '',
-                    email: currentUser.email || '',
-                    phone_number: currentUser.phone_number || '',
-                    address: currentUser.address || '',
-                    role: currentUser.role || '',
-                    profile_image: currentUser.profile_image || '',
-                    member_since: 'April 2025',
-                    recent_orders: []
-                });
-
-                if (currentUser.role === 'customer') {
-                    getOrders();
-                } else if (currentUser.role === 'rider') {
-                    getDeliveries();
-                }
-
-                setLoading(false);
-            } else {
-                console.log("No user found, redirecting to login");
-                navigate('/login');
-            }
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, [currentUser, navigate, authLoading]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -207,6 +184,301 @@ const Profile = () => {
         }
     };
 
+    const getRestaurantDetails = async () => {
+        try {
+            const response = await api.getRestaurantByOwnerId(currentUser.user_id);
+            setRestaurant(response);
+            getMenuItems(response);
+        } catch (error) {
+            console.error('Error getting restaurant details:', error);
+            setSuccessMessage('Failed to get restaurant details. Please try again.');
+        }
+    };
+
+    const getMenuItems = async (restaurant) => {
+        try {
+            const response = await api.getMenuItemsByRestaurant(restaurant._id);
+            setMenuItems(response);
+            console.log(response)
+            console.log(menuItems)
+        } catch (error) {
+            console.error('Error getting menu items:', error);
+            setSuccessMessage('Failed to get menu items. Please try again.');
+        }
+    };
+
+    const handleRestaurantChange = (e) => {
+        const { name, value } = e.target;
+        setRestaurant({ ...restaurant, [name]: value });
+    };
+
+    const handleRestaurantSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            setLoading(true);
+            const response = await api.updateRestaurant(restaurant._id, restaurant);
+            if (response) {
+                setIsEditingRestaurant(false);
+                setSuccessMessage('Restaurant details updated successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error updating restaurant:', error);
+            setSuccessMessage('Failed to update restaurant details. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleMenuItemChange = (e, item = null) => {
+        const { name, value, type, checked } = e.target;
+        const val = type === 'checkbox' ? checked : value;
+
+        if (item) {
+            setEditingMenuItem({
+                ...editingMenuItem,
+                [name]: val
+            });
+        } else {
+            setEditingMenuItem({
+                ...editingMenuItem,
+                [name]: val
+            });
+        }
+    };
+
+    const handleAddMenuItem = async (e) => {
+        e.preventDefault();
+        try {
+            setLoading(true);
+            const newItem = {
+                ...editingMenuItem,
+                restaurantId: restaurant._id
+            };
+            const response = await api.createMenuItem(newItem);
+            if (response) {
+                setMenuItems([...menuItems, response]);
+                setIsAddingMenuItem(false);
+                setEditingMenuItem(null);
+                setSuccessMessage('Menu item added successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error adding menu item:', error);
+            setSuccessMessage('Failed to add menu item. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateMenuItem = async (e) => {
+        e.preventDefault();
+        try {
+            setLoading(true);
+            const response = await api.updateMenuItem(editingMenuItem._id, editingMenuItem);
+            if (response) {
+                setMenuItems(menuItems.map(item =>
+                    item._id === editingMenuItem._id ? response : item
+                ));
+                setEditingMenuItem(null);
+                setSuccessMessage('Menu item updated successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error updating menu item:', error);
+            setSuccessMessage('Failed to update menu item. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteMenuItem = async (itemId) => {
+        try {
+            setLoading(true);
+            const response = await api.deleteMenuItem(itemId);
+            if (response) {
+                setMenuItems(menuItems.filter(item => item._id !== itemId));
+                setSuccessMessage('Menu item deleted successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error deleting menu item:', error);
+            setSuccessMessage('Failed to delete menu item. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRestaurantImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setLoading(true);
+            // Upload to Supabase
+            const fileExt = file.name.split('.').pop();
+            const fileName = `restaurant-${restaurant._id}-${Date.now()}.${fileExt}`;
+            const filePath = `restaurant-images/${fileName}`;
+
+            const { error } = await supabase.storage
+                .from('foodie')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            const { data: urlData } = supabase.storage
+                .from('foodie')
+                .getPublicUrl(filePath);
+
+            const imageUrl = urlData.publicUrl;
+
+            // Update restaurant with new image URL
+            const updatedRestaurant = { ...restaurant, imageUrl };
+            await api.updateRestaurant(restaurant._id, { imageUrl });
+
+            setRestaurant(updatedRestaurant);
+            setSuccessMessage('Restaurant image updated successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            setSuccessMessage('Failed to update restaurant image. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleMenuItemImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setLoading(true);
+            const fileExt = file.name.split('.').pop();
+            const fileName = `menu-item-${Date.now()}.${fileExt}`;
+            const filePath = `menu-item-images/${fileName}`;
+
+            const { error } = await supabase.storage
+                .from('foodie')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            const { data: urlData } = supabase.storage
+                .from('foodie')
+                .getPublicUrl(filePath);
+
+            const imageUrl = urlData.publicUrl;
+
+            setEditingMenuItem({
+                ...editingMenuItem,
+                imageUrls: [...(editingMenuItem.imageUrls || []), imageUrl]
+            });
+
+            setSuccessMessage('Menu item image uploaded successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            setSuccessMessage('Failed to upload menu item image. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getUnverifiedRestaurants = async () => {
+        try {
+            const response = await api.getUnverifiedRestuarants();
+            setUnverifiedRestaurants(response);
+        } catch (error) {
+            console.error('Error getting unverified restaurants:', error);
+            setSuccessMessage('Failed to get unverified restaurants. Please try again.');
+        }
+    };
+
+    const handleVerifyRestaurant = async (restaurantId) => {
+        try {
+            setLoading(true);
+            const response = await api.verifyRestaurant(restaurantId, 1);
+            if (response) {
+                setUnverifiedRestaurants(unverifiedRestaurants.filter(r => r._id !== restaurantId));
+                setSuccessMessage('Restaurant verified successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error verifying restaurant:', error);
+            setSuccessMessage('Failed to verify restaurant. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const handleDeclineRestaurant = async (restaurantId) => {
+        try {
+            setLoading(true);
+            const response = await api.verifyRestaurant(restaurantId, 2);
+            if (response) {
+                setUnverifiedRestaurants(unverifiedRestaurants.filter(r => r._id !== restaurantId));
+                setSuccessMessage('Restaurant declined successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error declining restaurant:', error);
+            setSuccessMessage('Failed to decline restaurant. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+
+    useEffect(() => {
+        if (authLoading) return;
+        setLoading(true);
+        const timer = setTimeout(() => {
+            if (currentUser) {
+                setFormData({
+                    user_id: currentUser.user_id || '',
+                    name: currentUser.name || '',
+                    email: currentUser.email || '',
+                    phone_number: currentUser.phone_number || '',
+                    address: currentUser.address || '',
+                    role: currentUser.role || '',
+                    profile_image: currentUser.profile_image || '',
+                    member_since: 'April 2025',
+                    recent_orders: []
+                });
+
+                if (currentUser.role === 'customer') {
+                    getOrders();
+                } else if (currentUser.role === 'rider') {
+                    getDeliveries();
+                } else if (currentUser.role === 'restaurant') {
+                    getRestaurantDetails();
+                } else if (currentUser.role === 'admin') {
+                    getUnverifiedRestaurants();
+                }
+
+                setLoading(false);
+            } else {
+                console.log("No user found, redirecting to login");
+                navigate('/login');
+            }
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [currentUser, navigate, authLoading]);
+
     if (loading || authLoading) {
         return <LoadingProfile />;
     }
@@ -257,15 +529,18 @@ const Profile = () => {
                             <nav className="flex space-x-8">
                                 {[
                                     { id: 'profile', label: 'Personal Information', visible: true },
+                                    { id: 'restaurant', label: 'Restaurant Details', visible: formData.role === 'restaurant' },
+                                    { id: 'menu', label: 'Menu Items', visible: formData.role === 'restaurant' },
                                     { id: 'orders', label: 'Order History', visible: formData.role === 'customer' },
-                                    { id: 'riding', label: 'Riding History', visible: formData.role === 'rider' }
+                                    { id: 'riding', label: 'Riding History', visible: formData.role === 'rider' },
+                                    { id: 'unverified', label: 'Unverified Restaurants', visible: formData.role === 'admin' }
                                 ].filter(tab => tab.visible).map(tab => (
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                                                ? 'border-green-500 text-green-600 dark:text-green-400'
-                                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                            ? 'border-green-500 text-green-600 dark:text-green-400'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                                             }`}
                                     >
                                         {tab.label}
@@ -302,6 +577,40 @@ const Profile = () => {
                                 <DeliveryHistory
                                     deliveries={deliveries}
                                     viewDeliveryDetails={(delivery) => setSelectedDelivery(delivery)}
+                                />
+                            )}
+
+                            {activeTab === 'restaurant' && formData.role === 'restaurant' && (
+                                <RestaurantDetails
+                                    restaurant={restaurant}
+                                    isEditingRestaurant={isEditingRestaurant}
+                                    setIsEditingRestaurant={setIsEditingRestaurant}
+                                    handleRestaurantChange={handleRestaurantChange}
+                                    handleRestaurantSubmit={handleRestaurantSubmit}
+                                    handleRestaurantImageUpload={handleRestaurantImageUpload}
+                                />
+                            )}
+
+                            {activeTab === 'menu' && formData.role === 'restaurant' && (
+                                <MenuItems
+                                    menuItems={menuItems}
+                                    isAddingMenuItem={isAddingMenuItem}
+                                    editingMenuItem={editingMenuItem}
+                                    setIsAddingMenuItem={setIsAddingMenuItem}
+                                    setEditingMenuItem={setEditingMenuItem}
+                                    handleMenuItemChange={handleMenuItemChange}
+                                    handleAddMenuItem={handleAddMenuItem}
+                                    handleUpdateMenuItem={handleUpdateMenuItem}
+                                    handleDeleteMenuItem={handleDeleteMenuItem}
+                                    handleMenuItemImageUpload={handleMenuItemImageUpload}
+                                />
+                            )}
+
+                            {activeTab === 'unverified' && formData.role === 'admin' && (
+                                <UnverifiedRestaurants
+                                    restaurants={unverifiedRestaurants}
+                                    handleVerify={handleVerifyRestaurant}
+                                    handleDecline={handleDeclineRestaurant}
                                 />
                             )}
 

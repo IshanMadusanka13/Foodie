@@ -1,172 +1,118 @@
-import { Request, Response, NextFunction } from 'express';
-import RestaurantService from '../services/restaurantService';
+import { Request, Response } from 'express';
+import RestaurantServiceImpl from '../services/impl/RestaurantServiceImpl';
 
-import { uploadImagesToSupabase } from '../utils/supabaseUpload';
+const restaurantService = new RestaurantServiceImpl();
 
-// Create Restaurant
-const createRestaurant = async (req: Request, res: Response): Promise<void> => {
-    try {
-        // Log the request body
-        console.log('Request Body:', req.body);
+class RestaurantController {
 
-        const { longitude, latitude, name, address, email, ownerId } = req.body;
-
-        const lon = parseFloat(longitude);
-        const lat = parseFloat(latitude);
-
-        console.log('Longitude:', lon, 'Latitude:', lat);
-
-        // Validate latitude and longitude
-        if (isNaN(lon) || isNaN(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
-            console.log('Invalid latitude/longitude');
-            res.status(400).json({ status: 'Error', message: 'Invalid longitude or latitude' });
-            return;
+    createRestaurant = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const restaurantData = req.body;
+            console.log(restaurantData)
+            const restaurant = await restaurantService.createRestaurant(restaurantData);
+            res.status(201).json(restaurant);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message || 'Failed to create restaurant' });
         }
+    };
 
-        // Ensure required fields
-        if (!name || !address || !email || !ownerId) {
-            console.log('Missing required fields');
-            res.status(400).json({ status: 'Error', message: 'Missing required fields' });
-            return;
+    getAllRestaurants = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const restaurants = await restaurantService.getAllRestaurants();
+            res.status(200).json(restaurants);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message || 'Failed to get restaurants' });
         }
+    };
 
-        // Handle image uploads
-        const files = req.files as Express.Multer.File[] | undefined;
-        console.log('Files:', files);
-
-        const imageUrls = files && files.length > 0 ? await uploadImagesToSupabase(files, 'restaurants') : [];
-        console.log('Image URLs:', imageUrls);
-
-        if (imageUrls.length === 0) {
-            imageUrls.push('https://waymjbgcpfbxrjxrlizr.supabase.co/storage/v1/object/public/foodie/Restaurants/default_restaurant.png');
-        }
-
-        const restaurantData = {
-            ...req.body,
-            imageUrls,
-            location: {
-                longitude: lon,
-                latitude: lat,
-            },
-        };
-
-        console.log('Restaurant Data:', restaurantData);
-
-        const restaurant = await RestaurantService.createRestaurant(restaurantData);
-        console.log('Created Restaurant:', restaurant);
-
-        res.status(201).json({ status: 'Success', data: { restaurant } });
-    } catch (error: any) {
-        console.error('Error:', error);
-        res.status(400).json({ status: 'Error', message: error.message || 'Failed to create restaurant' });
-    }
-};
-
-// Update Restaurant
-const updateRestaurant = async (req: Request, res: Response): Promise<void> => {
-    try {
-        console.log('req.body:', req.body);    // Form fields
-        console.log('req.file:', req.file);    // Single uploaded file
-
-        const file = req.file as Express.Multer.File | undefined;
-        let imageUrls: string[] = [];
-
-        if (file) {
-            imageUrls = await uploadImagesToSupabase([file], 'Restaurant');
-        } else if (req.body.imageUrls) {
-            try {
-                imageUrls = JSON.parse(req.body.imageUrls);
-            } catch (e) {
-                throw new Error('Invalid imageUrls format');
+    getRestaurantById = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { id } = req.params;
+            const restaurant = await restaurantService.getRestaurantById(id);
+            res.status(200).json(restaurant);
+        } catch (error: any) {
+            if (error.message === 'Restaurant not found') {
+                res.status(404).json({ error: error.message });
+            } else {
+                res.status(400).json({ error: error.message || 'Failed to get restaurant' });
             }
         }
+    };
 
-        // If no images provided AND no valid imageUrls in body, use default
-        const hasImageUrls =
-            req.body.imageUrls &&
-            Array.isArray(JSON.parse(req.body.imageUrls)) &&
-            JSON.parse(req.body.imageUrls).length > 0;
-
-        if (imageUrls.length === 0 && !hasImageUrls) {
-            imageUrls = [
-                'https://waymjbgcpfbxrjxrlizr.supabase.co/storage/v1/object/public/foodie/Restaurants/default_restaurant.png',
-            ];
-        }
-
-        const updateData: any = {
-            ...req.body,
-            ...(imageUrls.length > 0 && { imageUrls }),
-        };
-
-        // Parse location if present
-        const { longitude, latitude } = req.body;
-        if (longitude !== undefined && latitude !== undefined) {
-            const lon = parseFloat(longitude);
-            const lat = parseFloat(latitude);
-
-            if (isNaN(lon) || isNaN(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
-                res.status(400).json({ status: 'Error', message: 'Invalid longitude or latitude' });
-                return;
+    getUnverfiedRestaurant = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { id } = req.params;
+            const restaurant = await restaurantService.getUnverifiedRestaurants();
+            res.status(200).json(restaurant);
+        } catch (error: any) {
+            if (error.message === 'Restaurant not found') {
+                res.status(404).json({ error: error.message });
+            } else {
+                res.status(400).json({ error: error.message || 'Failed to get restaurant' });
             }
-
-            updateData.location = { longitude: lon, latitude: lat };
         }
+    };
 
-        const restaurant = await RestaurantService.updateRestaurant(req.params.id, updateData);
-        console.log("Updated restaurant:", restaurant);
-        res.status(200).json({ status: 'Success', data: { restaurant } });
+    getRestaurantByOwnerId = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { id } = req.params;
+            const restaurant = await restaurantService.getRestaurantByOwnerId(id);
+            res.status(200).json(restaurant);
+        } catch (error: any) {
+            if (error.message === 'Restaurant not found') {
+                res.status(404).json({ error: error.message });
+            } else {
+                res.status(400).json({ error: error.message || 'Failed to get restaurant' });
+            }
+        }
+    };
 
-    } catch (error: any) {
-        res.status(error.message?.includes('not found') ? 404 : 400).json({
-            status: 'Error',
-            message: error.message,
-        });
-    }
-};
+    updateRestaurant = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { id } = req.params;
+            const updateData = req.body;
 
-// Get All Restaurants
-const getAllRestaurants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const restaurants = await RestaurantService.getAllRestaurants();
-        res.status(200).json({
-            status: 'Success',
-            data: { restaurants }
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+            const updatedRestaurant = await restaurantService.updateRestaurant(id, updateData);
+            res.status(200).json(updatedRestaurant);
+        } catch (error: any) {
+            if (error.message === 'restaurant not found') {
+                res.status(404).json({ error: 'Restaurant not found' });
+            } else {
+                res.status(400).json({ error: error.message || 'Failed to update restaurant' });
+            }
+        }
+    };
 
-// Get Restaurant by ID
-const getRestaurantById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const restaurant = await RestaurantService.getRestaurantById(req.params.id);
-        res.status(200).json({
-            status: 'Success',
-            data: { restaurant }
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+    verifyRestaurant = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { id } = req.params;
+            const updateData = req.body.status;
+            console.log(updateData)
 
-// Delete Restaurant
-const deleteRestaurant = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const result = await RestaurantService.deleteRestaurant(req.params.id);
-        res.status(200).json({
-            status: 'Success',
-            data: result
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+            const updatedRestaurant = await restaurantService.verifyRestaurant(id, updateData);
+            res.status(200).json(updatedRestaurant);
+        } catch (error: any) {
+            if (error.message === 'restaurant not found') {
+                res.status(404).json({ error: 'Restaurant not found' });
+            } else {
+                res.status(400).json({ error: error.message || 'Failed to update restaurant' });
+            }
+        }
+    };
 
-export default {
-    createRestaurant,
-    getAllRestaurants,
-    getRestaurantById,
-    updateRestaurant,
-    deleteRestaurant
-};
+    deleteRestaurant = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { id } = req.params;
+            const result = await restaurantService.deleteRestaurant(id);
+            res.status(200).json(result);
+        } catch (error: any) {
+            if (error.message === 'restaurant not found') {
+                res.status(404).json({ error: 'Restaurant not found' });
+            } else {
+                res.status(400).json({ error: error.message || 'Failed to delete restaurant' });
+            }
+        }
+    };
+}
+
+export default RestaurantController;

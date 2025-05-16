@@ -8,6 +8,9 @@ import Order from './pages/orderService/order';
 import DeliverLocation from './pages/orderService/deliverLocation';
 import Delivery from './pages/Delivery';
 import DeliveryTracking from './components/DeliveryTracking';
+import RestaurantRegistration from './pages/restaurantService/RestaurantRegistration';
+import RestaurantDetail from './pages/restaurantService/RestaurantDetail';
+import RestaurantList from './pages/restaurantService/RestaurantView';
 
 function App() {
 
@@ -18,6 +21,10 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/profile" element={<Profile />} />
+
+      <Route path="/newrestaurant" element={<RestaurantRegistration />} />
+      <Route path="/restaurant" element={<RestaurantList />} />
+      <Route path="/restaurant/:id" element={<RestaurantDetail />} />
 
       <Route path="/pickup" element={<DeliverLocation />} />
       <Route path="/order" element={<Order />} />

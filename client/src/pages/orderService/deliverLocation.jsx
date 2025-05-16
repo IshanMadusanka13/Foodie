@@ -45,20 +45,9 @@ const DeliverLocation = () => {
     const [orderDetails, setOrderDetails] = useState({});
 
     useEffect(() => {
-        localStorage.setItem("orderDetails", JSON.stringify({
-            restaurantId: 'rest123',
-            restaurantName: 'Delicious Bites',
-            restaurantLocation: { longitude: 79.907332, latitude: 6.712521 },
-            restaurantAddress: '123 Foodie Ave, New York, NY 10001',
-            items: [
-                { menuItemId: 'item1', menuItemName: 'Chicken Burger', menuItemPrice: 188.99, qty: 2 },
-                { menuItemId: 'item2', menuItemName: 'French Fries', menuItemPrice: 133.99, qty: 1 },
-                { menuItemId: 'item3', menuItemName: 'Soda', menuItemPrice: 21.99, qty: 2 }
-            ]
-        }))
 
         if (!localStorage.getItem("orderDetails")) {
-            navigate("/");
+            navigate("/restaurant");
         } else {
             setOrderDetails(JSON.parse(localStorage.getItem("orderDetails")));
         }
@@ -128,21 +117,6 @@ const DeliverLocation = () => {
             deliveryLocation: position,
         });
 
-        console.log({
-            ...orderDetails,
-            customerLocation: {
-                latitude: position.lat,
-                longitude: position.lng
-            },
-            deliveryDistance: calculateDistance(
-                { lat: 6.716215, lng: 79.909577 },
-                position
-            ).toFixed(2),
-            deliveryAddress: address,
-            deliveryAddressNote: addressNote,
-            deliveryLocation: position,
-        });
-
 
         localStorage.setItem("orderDetails", JSON.stringify({
             ...orderDetails,
@@ -151,7 +125,7 @@ const DeliverLocation = () => {
                 longitude: position.lng
             },
             deliveryDistance: calculateDistance(
-                { lat: 6.712431, lng: 79.907180 },
+                { lat: orderDetails.restaurantLocation.latitude, lng: orderDetails.restaurantLocation.longitude },
                 position
             ).toFixed(2),
             deliveryAddress: address,

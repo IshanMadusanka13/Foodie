@@ -1,39 +1,24 @@
-import express, { Request, Response, NextFunction } from 'express';
-import controller from '../controllers/restaurantController';
-//import { authenticate, verifyRole } from '../middlewares/auth';  
-import upload from '../middlewares/upload';
+import { Router } from 'express';
+import RestaurantController from '../controllers/RestaurantController';
 
-const router = express.Router();
+const restaurantRouter = Router();
+const controller = new RestaurantController();
 
-router.get(
-    '/',
-    controller.getAllRestaurants
-);
 
-router.get(
-    '/:id',
-    controller.getRestaurantById
-);
+restaurantRouter.get('/unverified', controller.getUnverfiedRestaurant);
 
-router.delete(
-    '/:id',
-    // authenticate,
-    // verifyRole(['admin']),
-    controller.deleteRestaurant
-);
+restaurantRouter.get('/owner/:id', controller.getRestaurantByOwnerId);
 
-router.post(
-    '/',
-    upload.single('image'),
-    controller.createRestaurant
-);
+restaurantRouter.delete('/:id', controller.deleteRestaurant);
 
-router.put(
-    '/:id',
-    // authenticate,
-    // verifyRole(['admin']),
-    upload.single('image'),
-    controller.updateRestaurant
-);
+restaurantRouter.get('/', controller.getAllRestaurants);
 
-export default router;
+restaurantRouter.get('/:id', controller.getRestaurantById);
+
+restaurantRouter.post('/', controller.createRestaurant);
+
+restaurantRouter.put('/verify/:id', controller.verifyRestaurant);
+
+restaurantRouter.put('/', controller.updateRestaurant);
+
+export default restaurantRouter;

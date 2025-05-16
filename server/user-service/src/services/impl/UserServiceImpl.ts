@@ -8,6 +8,7 @@ export class UserService implements IUserService {
 
   async createUser(user: IUser): Promise<IUser> {
     logger.info('Creating new user');
+    logger.info(user);
     try {
 
       const userExist = await User.findOne({ email: user.email });

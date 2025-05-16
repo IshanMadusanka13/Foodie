@@ -1,22 +1,42 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-export interface IRestaurant extends Document {
+export interface IRestaurant {
     name: string;
     address: string;
     location: {
         longitude: number;
         latitude: number;
     };
-    email: string;
-    ownerId: mongoose.Types.ObjectId;
-    imageUrls: string[]; // Now supports multiple images from Supabase
+    ownerId: string;
+    imageUrl: string;
     openTime: string;
     closeTime: string;
-    createdAt?: Date;
-    updatedAt?: Date;
+    status: number;
 }
 
-const restaurantSchema: Schema = new mongoose.Schema(
+export interface IRestaurantCreate {
+    name: string;
+    address: string;
+    location: {
+        longitude: number;
+        latitude: number;
+    };
+    ownerId: string;
+    imageUrl: string;
+    openTime: string;
+    closeTime: string;
+
+    owner: {
+        name: string,
+        email: string,
+        phone_number: string,
+        password: string
+        role: string;
+
+    }
+}
+
+const restaurantSchema: Schema = new Schema<IRestaurant>(
     {
         name: { type: String, required: true },
         address: { type: String, required: true },
@@ -24,18 +44,13 @@ const restaurantSchema: Schema = new mongoose.Schema(
             longitude: { type: Number, required: true },
             latitude: { type: Number, required: true },
         },
-        email: { type: String, required: true },
-        ownerId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true,
-        },
-        imageUrls: {
-            type: [String],
-            default: [],
+        ownerId: { type: String, required: true },
+        imageUrl: {
+            type: String,
         },
         openTime: { type: String, required: true },
         closeTime: { type: String, required: true },
+        status: { type: Number, default: 0 },
     },
     { timestamps: true }
 );

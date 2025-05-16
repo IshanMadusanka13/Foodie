@@ -1,63 +1,29 @@
-import MenuItem, { IMenuItem } from '../models/MenuItem';
-import Restaurant from '../models/Restaurant';
+import { IMenuItem } from '../models/MenuItem';
 
-const createMenuItem = async (data: Partial<IMenuItem>) => {
-    const menuItem = new MenuItem(data);
-    await menuItem.save();
-    return menuItem.toObject();
-};
+export default interface IMenuItemService {
 
-const getMenuItemsByRestaurant = async (restaurantId: string, filters: Record<string, any> = {}) => {
-    const query = { restaurantId, ...filters };
-    return await MenuItem.find(query);
-};
+    createMenuItem(data: Partial<IMenuItem>): Promise<IMenuItem>;
 
-const getMenuItemsByCategory = async (category: string) => {
-    return await MenuItem.find({ category });
-};
+    getMenuItemsByRestaurant(restaurantId: string, filters?: Record<string, any>): Promise<IMenuItem[]>;
 
-const getMenuItemById = async (id: string) => {
-    return await MenuItem.findById(id);
-};
+    getMenuItemsByCategory(category: string): Promise<IMenuItem[]>;
 
-const updateMenuItem = async (menuItemId: string, updateData: Partial<IMenuItem>) => {
-    const updated = await MenuItem.findByIdAndUpdate(menuItemId, updateData, { new: true });
-    if (!updated) {
-        throw new Error("Menu item not found");
-    }
-    return updated;
-};
+    getMenuItemById(id: string): Promise<IMenuItem | null>;
 
-const deleteMenuItem = async (menuItemId: string) => {
-    const deleted = await MenuItem.findByIdAndDelete(menuItemId);
-    if (!deleted) {
-        throw new Error("Menu Item not Found");
-    }
-    return { message: `Menu item '${deleted.name}' deleted successfully` };
-};
+    updateMenuItem(menuItemId: string, updateData: Partial<IMenuItem>): Promise<IMenuItem>;
 
-const getPaginatedMenuItems = async (restaurantId: string, filters: Record<string, any>, page: number = 1, limit: number = 10, search: string = "") => {
-    const query = {
-        restaurantId,
-        ...filters,
-        name: { $regex: search, $options: 'i' }
-    };
+    deleteMenuItem(menuItemId: string): Promise<{ message: string }>;
 
-    const items = await MenuItem.find(query)
-        .skip((page - 1) * limit)
-        .limit(limit);
-
-    const total = await MenuItem.countDocuments(query);
-
-    return { items, total, page, pages: Math.ceil(total / limit) };
-};
-
-export default {
-    createMenuItem,
-    getMenuItemsByRestaurant,
-    getMenuItemsByCategory,
-    getMenuItemById,
-    updateMenuItem,
-    deleteMenuItem,
-    getPaginatedMenuItems,
-};
+    getPaginatedMenuItems(
+        restaurantId: string,
+        filters: Record<string, any>,
+        page?: number,
+        limit?: number,
+        search?: string
+    ): Promise<{
+        items: IMenuItem[];
+        total: number;
+        page: number;
+        pages: number;
+    }>;
+}

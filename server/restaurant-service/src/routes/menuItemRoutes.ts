@@ -1,53 +1,19 @@
-import express from 'express';
-import controller from '../controllers/menuItemController';
-//import { authenticate, verifyRole } from '../middlewares/auth'; 
-import upload from '../middlewares/upload';
+import { Router } from 'express';
+import MenuItemController from '../controllers/MenuItemController';
 
-const router = express.Router();
+const menuItemRouter = Router();
+const controller = new MenuItemController();
 
-router.post(
-    '/',
-    //authenticate,
-    //verifyRole(['restaurant_admin']),
-    upload.single('image'),
-    controller.createMenuItem
-);
+menuItemRouter.post('/',controller.createMenuItem);
 
-router.get(
-    '/restaurant/:restaurantId',
-    controller.getMenuItemsByRestaurant
-);
+menuItemRouter.get('/restaurant/:restaurantId',controller.getMenuItemsByRestaurant);
 
-router.get(
-    '/category',
-    controller.getMenuItemsByCategory
-);
+menuItemRouter.get('/category',controller.getMenuItemsByCategory);
 
-router.put(
-    '/:id',
-    //authenticate,
-    //verifyRole(['restaurant_admin']),
-    upload.single('image'),
-    controller.updateMenuItem
-);
+menuItemRouter.put('/:id',controller.updateMenuItem);
 
-router.delete(
-    '/:id',
-    //authenticate,
-    //verifyRole(['restaurant_admin']),
-    controller.deleteMenuItem
-);
+menuItemRouter.delete('/:id',controller.deleteMenuItem);
 
-router.get(
-    '/restaurant/:restaurantId/paginated',
-    controller.getPaginatedMenuItems
-);
+menuItemRouter.get('/restaurant/:restaurantId/paginated',controller.getPaginatedMenuItems);
 
-router.get(
-    '/all',
-    //authenticate,
-    //verifyRole(['admin']),
-    controller.getAllMenuItems
-);
-
-export default router;
+export default menuItemRouter;

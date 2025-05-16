@@ -1,31 +1,14 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import menuItemRouter from './routes/MenuItemRoutes';
+import restaurantRouter from './routes/RestaurantRoutes';
 
-// Import the routes
-import restaurantRouter from './routes/restaurantRoutes';
-import menuItemRoutes from './routes/menuItemRoutes';
-//import userRouter from './routes/UserRouter';
-
-dotenv.config(); // Load environment variables from .env file
-
-// Create an instance of express
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Example test route
-app.get('/', (req, res) => {
-    res.send('Restaurant service is running');
-});
-
-// Use the imported routes
 app.use('/api/restaurant', restaurantRouter);
-//app.use('/api/users', userRouter);
-app.use('/api/menu-items', menuItemRoutes);
-app.use('/uploads', express.static('uploads'));
+app.use('/api/menu', menuItemRouter);
 
 export default app;
