@@ -9,7 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   initSocket, getSocket,
   joinDeliveryTracking, leaveDeliveryTracking,
-  onDeliveryLocationUpdate, offDeliveryLocationUpdate
+  onDeliveryLocationUpdate, offDeliveryLocationUpdate,
+  onDeliveryStatusUpdate, offDeliveryStatusUpdate
 } from '../utils/socketService';
 
 // Leaflet marker icons setup (same as your original)
@@ -89,6 +90,7 @@ const DeliveryTracking = () => {
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [estimatedDistance, setEstimatedDistance] = useState(null);
   const [deliveryId, setDeliveryId] = useState(null);
+  const currentLocation = { latitude: 6.699677, longitude: 79.910938 };
 
   // Fetch delivery and set up socket
   useEffect(() => {
@@ -112,24 +114,71 @@ const DeliveryTracking = () => {
     return () => offDeliveryLocationUpdate();
   }, [deliveryId]);
 
+  console.log(delivery);
+
   useEffect(() => {
+    let timeoutId;
     if (delivery) {
       joinDeliveryTracking(deliveryId);
       onDeliveryLocationUpdate((data) => {
         if (data.deliveryId === deliveryId) {
+          // Correctly use the location data from the socket event
           const updatedLocation = {
-            latitude: 6.701456,
-            longitude: 79.911614
+            latitude: data.location.latitude,
+            longitude: data.location.longitude
           };
+
+          console.log("Received rider location update:", updatedLocation);
           setRiderLocation(updatedLocation);
+
           if (delivery.status === 'accepted' || delivery.status === 'collected') {
             const destination = delivery.status === 'accepted'
               ? delivery.restaurant_location
               : delivery.customer_location;
+
+            // Use the updated location to calculate the route
             updateRouteToDestination(updatedLocation, destination);
           }
         }
       });
+
+      // Set up status updates - use the improved function
+      onDeliveryStatusUpdate((data) => {
+        if (data.deliveryId === deliveryId) {
+          console.log("Received status update in tracking:", data);
+          setDelivery(prev => ({
+            ...prev,
+            status: data.status,
+            updated_at: data.timestamp
+          }));
+
+          if (data.status === 'accepted' && delivery.restaurant_location) {
+            setMapCenter([delivery.restaurant_location.latitude, delivery.restaurant_location.longitude]);
+          } else if (data.status === 'collected' && delivery.customer_location) {
+            setMapCenter([delivery.customer_location.latitude, delivery.customer_location.longitude]);
+          }
+        }
+      });
+
+      // If we don't receive a location update within 5 seconds, use default location
+      if (delivery.status === 'accepted' || delivery.status === 'collected') {
+
+        timeoutId = setTimeout(() => {
+          if (!riderLocation) {
+            console.log("No rider location received, using default");
+
+            setRiderLocation(currentLocation);
+
+            if (delivery.status === 'accepted' || delivery.status === 'collected') {
+              const destination = delivery.status === 'accepted'
+                ? delivery.restaurant_location
+                : delivery.customer_location;
+              updateRouteToDestination(currentLocation, destination);
+            }
+          }
+        }, 2000);
+      }
+
       const socket = getSocket();
       socket.on('delivery:status_updated', (data) => {
         if (data.deliveryId === deliveryId) {
@@ -138,6 +187,7 @@ const DeliveryTracking = () => {
             status: data.status,
             updated_at: data.timestamp
           }));
+
           if (data.status === 'accepted' && delivery.restaurant_location) {
             setMapCenter([delivery.restaurant_location.latitude, delivery.restaurant_location.longitude]);
           } else if (data.status === 'collected' && delivery.customer_location) {
@@ -145,13 +195,17 @@ const DeliveryTracking = () => {
           }
         }
       });
+
       return () => {
         leaveDeliveryTracking(deliveryId);
         offDeliveryLocationUpdate();
+        offDeliveryStatusUpdate();
         socket.off('delivery:status_updated');
+        clearTimeout(timeoutId);
       };
     }
   }, [delivery, deliveryId]);
+
 
   // Route calculation
   const updateRouteToDestination = (origin, destination) => {
@@ -168,7 +222,7 @@ const DeliveryTracking = () => {
       setEstimatedDistance(distance);
       const timeInHours = distance / 30;
       setEstimatedTime(Math.round(timeInHours * 60));
-    } catch {}
+    } catch { }
   };
 
   if (loading) {
@@ -237,7 +291,7 @@ const DeliveryTracking = () => {
           )}
           {estimatedTime && (
             <span className="text-gray-600">
-              <span className="font-semibold">{estimatedTime}</span> min ETA
+              <span className="font-semibold">{estimatedTime}</span> min
             </span>
           )}
         </div>
@@ -276,14 +330,17 @@ const DeliveryTracking = () => {
           >
             <Popup>Your Location</Popup>
           </Marker>
-          
+
+          {riderLocation && (
             <Marker
-              position={[6.699677, 79.910938]}
+              position={[riderLocation.latitude, riderLocation.longitude]}
               icon={riderIcon}
             >
               <Popup>Rider Location</Popup>
             </Marker>
-          
+          )}
+
+
           {routeToDestination && (
             <Polyline
               positions={routeToDestination}
@@ -314,19 +371,19 @@ const DeliveryTracking = () => {
                 {/* Custom icons for each step */}
                 {i === 0 && (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
                 {i === 1 && (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 3v3m0 12v3m9-9h-3M6 12H3m15.364-6.364l-2.121 2.121M6.343 17.657l-2.121 2.121m12.728 0l2.121-2.121M6.343 6.343L4.222 4.222"/>
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 3v3m0 12v3m9-9h-3M6 12H3m15.364-6.364l-2.121 2.121M6.343 17.657l-2.121 2.121m12.728 0l2.121-2.121M6.343 6.343L4.222 4.222" />
                   </svg>
                 )}
                 {i === 2 && (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 8v4l3 3"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4l3 3" />
                   </svg>
                 )}
               </motion.div>
@@ -363,14 +420,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
   const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 function deg2rad(deg) {
-  return deg * (Math.PI/180);
+  return deg * (Math.PI / 180);
 }
 
 export default DeliveryTracking;

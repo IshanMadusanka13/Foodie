@@ -29,7 +29,6 @@ io.on('connection', (socket) => {
 
   socket.on('rider:location', async (data) => {
     try {
-
       if (!data.deliveryId || !data.latitude || !data.longitude) {
         logger.warn('Invalid location data received');
         return;
@@ -63,6 +62,30 @@ io.on('connection', (socket) => {
     logger.info(`Client ${socket.id} left tracking for delivery ${deliveryId}`);
   });
 
+  // Add this event handler in the io.on('connection', (socket) => { ... }) block
+  socket.on('delivery:status_update', async (data) => {
+    try {
+      if (!data.deliveryId || !data.status) {
+        logger.warn('Invalid status update data received');
+        return;
+      }
+
+      // Broadcast the status update to all clients in the delivery room
+      io.to(`delivery:${data.deliveryId}`).emit('delivery:status_updated', {
+        deliveryId: data.deliveryId,
+        status: data.status,
+        timestamp: new Date()
+      });
+
+      logger.info({
+        deliveryId: data.deliveryId,
+        status: data.status
+      }, 'Delivery status updated via socket');
+    } catch (error) {
+      logger.error({ error, data }, 'Error processing delivery status update');
+    }
+  });
+
   socket.on('disconnect', () => {
     logger.info(`Client disconnected: ${socket.id}`);
   });
@@ -87,7 +110,8 @@ process.on('SIGTERM', async () => {
 });
 
 connectDB(MONGO_URI).then(() => {
-  app.listen(PORT, () => {
+  // IMPORTANT CHANGE: Listen on 'server' instead of 'app'
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
 });
