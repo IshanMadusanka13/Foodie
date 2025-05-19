@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import menuItemRouter from './routes/MenuItemRoutes';
-import restaurantRouter from './routes/RestaurantRoutes';
+import menuItemRouter from './routes/menuItemRoutes';
+import restaurantRouter from './routes/restaurantRoutes';
 
 const app = express();
 
