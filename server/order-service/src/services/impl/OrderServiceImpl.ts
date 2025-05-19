@@ -1,7 +1,7 @@
 import Order, { IOrder, IOrderCreate } from '../../models/Order';
 import { IOrderService } from '../OrderService';
 import logger from '../../config/logger';
-import { publishMessage } from '../../config/rabbitmq';
+import axios from 'axios';
 
 export class OrderService implements IOrderService {
     async generateOrderId(): Promise<string> {
@@ -25,24 +25,20 @@ export class OrderService implements IOrderService {
         const newOrder = new Order(order);
         const savedOrder = await newOrder.save();
 
-        if (savedOrder.paymentMethod == "cash") {
-            try {
-                await publishMessage('order_created', {
-                    order_id: savedOrder.order_id,
-                    customer: savedOrder.customer,
-                    restaurant: savedOrder.restaurant,
-                    payment_method: savedOrder.paymentMethod,
-                    restaurant_location: order.restaurantLocation,
-                    customer_location: order.customerLocation,
-                    total: savedOrder.total
-                });
-                logger.info(`Published order_created event for order ${savedOrder.order_id}`);
-            } catch (error) {
-                logger.error(`Failed to publish order_created event: ${error}`);
-            }
+        try {
+            await axios.post('http://localhost:5005/api/deliveries', {
+                order_id: savedOrder.order_id,
+                customer: savedOrder.customer,
+                restaurant: savedOrder.restaurant,
+                payment_method: savedOrder.paymentMethod,
+                restaurant_location: order.restaurantLocation,
+                customer_location: order.customerLocation,
+                total: savedOrder.total
+            });
+            logger.info(`Order created with ID: ${savedOrder.order_id}`);
+        } catch (error) {
+            logger.error(`Failed to create order: ${error}`);
         }
-
-        logger.info(`Order created with ID: ${savedOrder.order_id}`);
         return savedOrder;
     }
 

@@ -38,10 +38,16 @@ const HeroSection = () => {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                             <Link
-                                to="#"
+                                to="/restaurant"
                                 className="px-8 py-3 text-lg font-semibold rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-md"
                             >
                                 Order Now
+                            </Link>
+                            <Link
+                                to="/newrestaurant"
+                                className="px-8 py-3 text-lg font-semibold rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-md"
+                            >
+                                Add Your Restaurant
                             </Link>
                         </div>
                     </div>

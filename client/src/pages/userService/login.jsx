@@ -30,7 +30,15 @@ const Login = () => {
             });
 
             if (success) {
-                navigate('/profile');
+
+                const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+                if (redirectUrl) {
+                    sessionStorage.removeItem('redirectAfterLogin');
+                    navigate(redirectUrl);
+                } else {
+                    navigate('/profile');
+                }
+
             } else {
                 setLoginError(error || 'Login failed. Please try again.');
             }

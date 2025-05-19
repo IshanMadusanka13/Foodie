@@ -24,8 +24,8 @@ const fetchApi = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${endpoint}`, config);
-        //console.log('API Request:', { endpoint, options });
-        // console.log('API Response:', response);
+        console.log('API Request:', { endpoint, options });
+        console.log('API Response:', response);
 
         if (response.status === 401) {
             localStorage.removeItem('token');
@@ -90,6 +90,66 @@ export const api = {
             body: JSON.stringify(userData)
         }),
 
+    //Restaurant
+    createRestaurant: (restaurantData) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant', {
+            method: 'POST',
+            body: JSON.stringify(restaurantData)
+        }),
+
+    createMenuItem: (restaurantData) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/menu', {
+            method: 'POST',
+            body: JSON.stringify(restaurantData)
+        }),
+
+    updateMenuItem: (restaurantId, restaurantData) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/menu/' + restaurantId, {
+            method: 'PUT',
+            body: JSON.stringify(restaurantData)
+        }),
+
+    verifyRestaurant: (restaurantId, status) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant/verify/' + restaurantId, {
+            method: 'PUT',
+            body: JSON.stringify({ status: status })
+        }),
+
+    getRestaurantByOwnerId: (userId) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant/owner/' + userId, {
+            method: 'GET'
+        }),
+
+    getUnverifiedRestuarants: () =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant/unverified', {
+            method: 'GET'
+        }),
+
+    deleteMenuItem: (menuId) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/menu/' + menuId, {
+            method: 'DELETE'
+        }),
+
+    getMenuItemsByRestaurant: (restaurantId) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/menu/restaurant/' + restaurantId, {
+            method: 'GET'
+        }),
+
+    getAllRestuarants: () =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant', {
+            method: 'GET'
+        }),
+
+    getRestaurantById: (id) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant/' + id, {
+            method: 'GET'
+        }),
+
+    getMenuItemsByRestaurant: (restaurantId) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/menu/restaurant/' + restaurantId, {
+            method: 'GET'
+        }),
+
 
     //Order
     createOrder: (orderDetails) =>
@@ -104,6 +164,14 @@ export const api = {
         }),
     getCurrentUser: (email) =>
         fetchApi(`${USER_SERVICE_API_URL}/users/${email}`),
+
+
+    //Payment
+    createPaymentLink: (orderDetails) =>
+        fetchApi(PAYMENT_SERVICE_API_URL + '/payment/', {
+            method: 'POST',
+            body: JSON.stringify(orderDetails)
+        }),
 
     // Delivery
     getNearbyDeliveries: (longitude, latitude, maxDistance = 10000) =>
