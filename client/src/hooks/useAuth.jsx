@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }) => {
       }));
   
       const user = await api.getCurrentUser(response.user_id);
+      console.log('User:', user);
       setCurrentUser(user);
   
       return { success: true };

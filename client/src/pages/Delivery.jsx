@@ -62,50 +62,60 @@ const Delivery = () => {
   const { currentUser } = useAuth();
   const [nearbyDeliveries, setNearbyDeliveries] = useState([]);
   const [activeDelivery, setActiveDelivery] = useState(null);
-  //const [userLocation, setUserLocation] = useState({ latitude: 6.6993360, longitude: 79.9109078 }); //home
-  const [userLocation, setUserLocation] = useState({ latitude: 6.915185, longitude: 79.973575 }); //sliit
-  const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]); // Default to Sri Lanka center
+  const [userLocation, setUserLocation] = useState({ latitude: 6.699677, longitude: 79.910938 }); //home
+  //const [userLocation, setUserLocation] = useState({ latitude: 6.915185, longitude: 79.973575 }); //sliit
+  const [mapCenter, setMapCenter] = useState([6.699677, 79.910938]); // Default to Sri Lanka center
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [routeToDestination, setRouteToDestination] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [estimatedDistance, setEstimatedDistance] = useState(null);
 
+  console.log("Current User:", currentUser);
+
+  useEffect(() => {
+    const userlocation = {
+      latitude: 6.699677,
+      longitude: 79.910938,
+    };
   
+    setUserLocation(userlocation);
+    setMapCenter([userlocation.latitude, userlocation.longitude]);
+  }, []);
   
   // Dummy data for nearby deliveries
-  const dummyNearbyDeliveries = [
-    {
-      delivery_id: "d234567",
-      order_id: "o890123",
-      status: "pending",
-      restaurant_location: {
-        latitude: 6.923710,
-        longitude: 79.977759
-      },//Land of Kings Cafe & Restaurant
-      customer_location: {
-        latitude: 6.928725,
-        longitude: 79.978017
-      },//bodima
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      delivery_id: "d345678",
-      order_id: "o901234",
-      status: "pending",
-      restaurant_location: {
-        latitude: 6.913618,
-        longitude: 79.972005
-      },//avanya restaurant
-      customer_location: {
-        latitude: 6.928725,
-        longitude: 79.978017
-      },
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
+  // const dummyNearbyDeliveries = [
+  //   {
+  //     delivery_id: "d234567",
+  //     order_id: "o890123",
+  //     status: "pending",
+  //     restaurant_location: {
+  //       latitude: 6.923710,
+  //       longitude: 79.977759
+  //     },//Land of Kings Cafe & Restaurant
+  //     customer_location: {
+  //       latitude: 6.928725,
+  //       longitude: 79.978017
+  //     },//bodima
+  //     created_at: new Date().toISOString(),
+  //     updated_at: new Date().toISOString()
+  //   },
+  //   {
+  //     delivery_id: "d345678",
+  //     order_id: "o901234",
+  //     status: "pending",
+  //     restaurant_location: {
+  //       latitude: 6.913618,
+  //       longitude: 79.972005
+  //     },//avanya restaurant
+  //     customer_location: {
+  //       latitude: 6.928725,
+  //       longitude: 79.978017
+  //     },
+  //     created_at: new Date().toISOString(),
+  //     updated_at: new Date().toISOString()
+  //   }
+  // ];
 
   // Initialize socket in the component
 useEffect(() => {
@@ -182,8 +192,16 @@ useEffect(() => {
           navigator.geolocation.getCurrentPosition(
             async (position) => {
               const { latitude, longitude } = position.coords;
-              setUserLocation({ latitude, longitude });
+              //setUserLocation({ latitude, longitude });
               setMapCenter([latitude, longitude]);
+
+              const userlocation = {
+                latitude: 6.699677,
+                longitude: 79.910938,
+              };
+            
+              setUserLocation(userlocation);
+              setMapCenter([userlocation.latitude, userlocation.longitude]);
               
               // Check if rider has an active delivery
               if (currentUser && currentUser.user_id) {
@@ -208,7 +226,7 @@ useEffect(() => {
                   } else {
                     console.log("No active delivery found, fetching nearby deliveries");
                     // Fetch nearby deliveries if no active delivery
-                    const nearbyDeliveries = await api.getNearbyDeliveries(longitude, latitude);
+                    const nearbyDeliveries = await api.getNearbyDeliveries(79.910938, 6.699677);
                     console.log('Nearby Deliveries:', nearbyDeliveries);
                     setNearbyDeliveries(nearbyDeliveries);
                   }
@@ -267,6 +285,14 @@ useEffect(() => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
           setMapCenter([latitude, longitude]);
+
+          const userlocation = {
+            latitude: 6.699677,
+            longitude: 79.910938,
+          };
+        
+          setUserLocation(userlocation);
+          setMapCenter([userlocation.latitude, userlocation.longitude]);
           
           // Send initial location update via socket
           if (activeDelivery) {
@@ -288,6 +314,14 @@ useEffect(() => {
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
+
+          const userlocation = {
+            latitude: 6.699677,
+            longitude: 79.910938,
+          };
+        
+          setUserLocation(userlocation);
+          //setMapCenter([userlocation.latitude, userlocation.longitude]);
           
           // Send location update via socket
           if (activeDelivery) {
