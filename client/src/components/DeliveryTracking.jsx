@@ -118,8 +118,8 @@ const DeliveryTracking = () => {
       onDeliveryLocationUpdate((data) => {
         if (data.deliveryId === deliveryId) {
           const updatedLocation = {
-            latitude: data.location.latitude,
-            longitude: data.location.longitude
+            latitude: 6.701456,
+            longitude: 79.911614
           };
           setRiderLocation(updatedLocation);
           if (delivery.status === 'accepted' || delivery.status === 'collected') {
@@ -276,14 +276,14 @@ const DeliveryTracking = () => {
           >
             <Popup>Your Location</Popup>
           </Marker>
-          {riderLocation && (
+          
             <Marker
-              position={[riderLocation.latitude, riderLocation.longitude]}
+              position={[6.699677, 79.910938]}
               icon={riderIcon}
             >
               <Popup>Rider Location</Popup>
             </Marker>
-          )}
+          
           {routeToDestination && (
             <Polyline
               positions={routeToDestination}
