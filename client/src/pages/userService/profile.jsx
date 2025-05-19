@@ -190,6 +190,7 @@ const Profile = () => {
             setRestaurant(response);
             getMenuItems(response);
         } catch (error) {
+            navigate('/login')
             console.error('Error getting restaurant details:', error);
             setSuccessMessage('Failed to get restaurant details. Please try again.');
         }

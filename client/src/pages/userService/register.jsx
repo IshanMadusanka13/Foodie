@@ -6,7 +6,7 @@ const Register = () => {
     const { register } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('CUSTOMER');
-    
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -15,7 +15,6 @@ const Register = () => {
         password: '',
         confirmPassword: '',
         licenseNumber: '',
-        registrationNumber: '',
         acceptTerms: false,
         role: 'CUSTOMER'
     });
@@ -60,8 +59,6 @@ const Register = () => {
 
         if (formData.role === 'RIDER') {
             userData.licenseNumber = formData.licenseNumber;
-        } else if (formData.role === 'RESTAURANT') {
-            userData.registrationNumber = formData.registrationNumber;
         }
 
         const result = await register(userData);
@@ -113,10 +110,6 @@ const Register = () => {
             newErrors.licenseNumber = 'License number is required';
         }
 
-        if (formData.role === 'RESTAURANT' && !formData.registrationNumber.trim()) {
-            newErrors.registrationNumber = 'Registration number is required';
-        }
-
         if (!formData.acceptTerms) {
             newErrors.acceptTerms = 'You must accept the terms and conditions';
         }
@@ -154,21 +147,12 @@ const Register = () => {
                         >
                             Rider
                         </button>
-                        <button
-                            onClick={() => handleTabChange('RESTAURANT')}
-                            className={`flex-1 py-2 px-4 text-center font-medium ${activeTab === 'RESTAURANT'
-                                ? 'text-green-600 border-b-2 border-green-500 dark:text-green-400 dark:border-green-400'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                                }`}
-                        >
-                            Restaurant
-                        </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {activeTab === 'RESTAURANT' ? 'Restaurant Name' : 'Full Name'}
+                                Full Name
                             </label>
                             <div className="mt-1">
                                 <input
@@ -180,7 +164,7 @@ const Register = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
-                                    placeholder={activeTab === 'RESTAURANT' ? 'Restaurant Name' : 'John Doe'}
+                                    placeholder="John Doe"
                                 />
                                 {errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
                             </div>
@@ -243,27 +227,6 @@ const Register = () => {
                                         placeholder="DL12345678"
                                     />
                                     {errors.licenseNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.licenseNumber}</p>}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'RESTAURANT' && (
-                            <div>
-                                <label htmlFor="registrationNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Business Registration Number
-                                </label>
-                                <div className="mt-1">
-                                    <input
-                                        id="registrationNumber"
-                                        name="registrationNumber"
-                                        type="text"
-                                        required
-                                        value={formData.registrationNumber}
-                                        onChange={handleChange}
-                                        className="appearance-none block w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 dark:bg-slate-700 dark:text-white"
-                                        placeholder="BR12345678"
-                                    />
-                                    {errors.registrationNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.registrationNumber}</p>}
                                 </div>
                             </div>
                         )}
@@ -354,9 +317,7 @@ const Register = () => {
                                 type="submit"
                                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-[#208C27] to-[#36BF3F] hover:from-[#16601d] hover:to-[#2eaa36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#36BF3F] transition-all duration-200 transform hover:scale-[1.02] active:scale-95"
                             >
-                                {activeTab === 'CUSTOMER' ? 'Create Customer Account' : 
-                                 activeTab === 'RIDER' ? 'Create Rider Account' : 
-                                 'Create Restaurant Account'}
+                                {activeTab === 'CUSTOMER' ? 'Create Customer Account' : 'Create Rider Account'}
                             </button>
                         </div>
                     </form>

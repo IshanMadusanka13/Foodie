@@ -97,6 +97,12 @@ export const api = {
             body: JSON.stringify(restaurantData)
         }),
 
+    updateRestaurant: (id, restaurantData) =>
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant/'+id, {
+            method: 'PUT',
+            body: JSON.stringify(restaurantData)
+        }),
+
     createMenuItem: (restaurantData) =>
         fetchApi(RESTUARANT_SERVICE_API_URL + '/menu', {
             method: 'POST',

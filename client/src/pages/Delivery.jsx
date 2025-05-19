@@ -415,8 +415,7 @@ const Delivery = () => {
             // Now it's safe to clear the active delivery
             setActiveDelivery(null);
 
-            // Now it's safe to clear the active delivery
-            setActiveDelivery(null);
+            location.reload();
 
             // Fetch nearby deliveries again
             if (CurrentLocation) {

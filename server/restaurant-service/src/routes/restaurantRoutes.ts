@@ -19,6 +19,6 @@ restaurantRouter.post('/', controller.createRestaurant);
 
 restaurantRouter.put('/verify/:id', controller.verifyRestaurant);
 
-restaurantRouter.put('/', controller.updateRestaurant);
+restaurantRouter.put('/:id', controller.updateRestaurant);
 
 export default restaurantRouter;

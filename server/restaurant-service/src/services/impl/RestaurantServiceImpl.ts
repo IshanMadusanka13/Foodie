@@ -180,7 +180,7 @@ class RestaurantServiceImpl implements RestaurantServiceImpl {
             const restaurant = await Restaurant.findOne({ ownerId: ownerId, status: 1 });
             if (!restaurant) {
                 logger.info(`No restaurant found for owner ID: ${ownerId}`);
-                throw new Error('Owner not found');
+                throw new Error('Restaurant not found');
             }
 
             logger.info(`Found restaurant: ${restaurant.name} for owner: ${ownerId}`);
