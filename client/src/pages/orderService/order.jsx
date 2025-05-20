@@ -20,7 +20,8 @@ const Order = () => {
     navigate("/")
   }
 
-  const orderDetails = JSON.parse(localStorage.getItem("orderDetails"));
+  const initialOrderDetails = JSON.parse(localStorage.getItem("orderDetails"));
+  const [orderDetails, setOrderDetails] = useState(initialOrderDetails);
 
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +36,35 @@ const Order = () => {
 
   const handlePaymentMethodChange = (e) => {
     setPaymentMethod(e.target.value);
+  };
+
+  const updateItemQuantity = (menuItemId, newQty) => {
+    if (newQty <= 0) {
+      removeItem(menuItemId);
+      return;
+    }
+
+    const updatedItems = orderDetails.items.map(item =>
+      item.menuItemId === menuItemId ? { ...item, qty: newQty } : item
+    );
+
+    const updatedOrderDetails = { ...orderDetails, items: updatedItems };
+    setOrderDetails(updatedOrderDetails);
+    localStorage.setItem("orderDetails", JSON.stringify(updatedOrderDetails));
+  };
+
+  const removeItem = (menuItemId) => {
+    const updatedItems = orderDetails.items.filter(item => item.menuItemId !== menuItemId);
+
+    if (updatedItems.length === 0) {
+      localStorage.removeItem("orderDetails");
+      navigate("/");
+      return;
+    }
+
+    const updatedOrderDetails = { ...orderDetails, items: updatedItems };
+    setOrderDetails(updatedOrderDetails);
+    localStorage.setItem("orderDetails", JSON.stringify(updatedOrderDetails));
   };
 
   const handleSubmitOrder = async (e) => {
@@ -178,15 +208,42 @@ const Order = () => {
                         <th className="py-2 px-4 text-right">Qty</th>
                         <th className="py-2 px-4 text-right">Price</th>
                         <th className="py-2 px-4 text-right">Subtotal</th>
+                        <th className="py-2 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {orderDetails.items.map((item) => (
                         <tr key={item.menuItemId} className={`border-t ${darkMode ? 'border-slate-600' : 'border-gray-200'}`}>
                           <td className="py-3 px-4">{item.menuItemName}</td>
-                          <td className="py-3 px-4 text-right">{item.qty}</td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end">
+                              <button
+                                onClick={() => updateItemQuantity(item.menuItemId, item.qty - 1)}
+                                className={`w-8 h-8 flex items-center justify-center rounded-full ${darkMode ? 'bg-slate-600 hover:bg-slate-500' : 'bg-gray-200 hover:bg-gray-300'}`}
+                              >
+                                -
+                              </button>
+                              <span className="mx-2">{item.qty}</span>
+                              <button
+                                onClick={() => updateItemQuantity(item.menuItemId, item.qty + 1)}
+                                className={`w-8 h-8 flex items-center justify-center rounded-full ${darkMode ? 'bg-slate-600 hover:bg-slate-500' : 'bg-gray-200 hover:bg-gray-300'}`}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </td>
                           <td className="py-3 px-4 text-right">LKR {item.menuItemPrice.toFixed(2)}</td>
                           <td className="py-3 px-4 text-right">LKR {(item.menuItemPrice * item.qty).toFixed(2)}</td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              onClick={() => removeItem(item.menuItemId)}
+                              className={`p-1 rounded ${darkMode ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -254,9 +311,9 @@ const Order = () => {
 
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || orderDetails.items.length === 0}
                   className={`w-full py-3 px-6 ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-500 hover:bg-primary-600'
-                    } text-white font-bold rounded-xl transition duration-200 flex justify-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                    } text-white font-bold rounded-xl transition duration-200 flex justify-center ${(isLoading || orderDetails.items.length === 0) ? 'opacity-70 cursor-not-allowed' : ''
                     }`}
                 >
                   {isLoading ? (

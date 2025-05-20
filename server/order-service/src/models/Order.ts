@@ -13,7 +13,7 @@ export interface IOrder {
     orderAmount: number;
     deliveryFee: number;
     total: number;
-    status: 'pending' | 'completed' | 'cancelled';
+    status: 'pending' | 'accepted' | 'declined' | 'completed' | 'cancelled';
     paymentMethod: 'card' | 'cash';
     placedAt: Date;
 }
@@ -31,7 +31,7 @@ export interface IOrderCreate {
     orderAmount: number;
     deliveryFee: number;
     total: number;
-    status: 'pending' | 'accepted' | 'completed' | 'cancelled';
+    status: 'pending' | 'accepted' | 'declined' | 'completed' | 'cancelled';
     paymentMethod: 'card' | 'cash';
     placedAt: Date;
     restaurantLocation: {

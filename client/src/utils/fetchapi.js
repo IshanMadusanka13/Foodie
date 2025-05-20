@@ -24,8 +24,8 @@ const fetchApi = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${endpoint}`, config);
-        console.log('API Request:', { endpoint, options });
-        console.log('API Response:', response);
+        // console.log('API Request:', { endpoint, options });
+        // console.log('API Response:', response);
 
         if (response.status === 401) {
             localStorage.removeItem('token');
@@ -90,6 +90,9 @@ export const api = {
             body: JSON.stringify(userData)
         }),
 
+    getCurrentUser: (email) =>
+        fetchApi(`${USER_SERVICE_API_URL}/users/${email}`),
+
     //Restaurant
     createRestaurant: (restaurantData) =>
         fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant', {
@@ -98,7 +101,7 @@ export const api = {
         }),
 
     updateRestaurant: (id, restaurantData) =>
-        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant/'+id, {
+        fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant/' + id, {
             method: 'PUT',
             body: JSON.stringify(restaurantData)
         }),
@@ -168,8 +171,21 @@ export const api = {
         fetchApi(ORDER_SERVICE_API_URL + '/order/user/' + user_id, {
             method: 'GET'
         }),
-    getCurrentUser: (email) =>
-        fetchApi(`${USER_SERVICE_API_URL}/users/${email}`),
+
+    getUnverifiedOrders: (restaurantId) =>
+        fetchApi(ORDER_SERVICE_API_URL + '/order/verify/' + restaurantId, {
+            method: 'GET'
+        }),
+
+    verifyOrder: (orderId) =>
+        fetchApi(ORDER_SERVICE_API_URL + `/order/verify/${orderId}/1`, {
+            method: 'PUT',
+        }),
+
+    declineOrder: (orderId) =>
+        fetchApi(ORDER_SERVICE_API_URL + `/order/verify/${orderId}/0`, {
+            method: 'PUT',
+        }),
 
 
     //Payment

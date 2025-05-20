@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { OrderService } from '../services/impl/OrderServiceImpl';
 import logger from '../config/logger';
+import { Console } from 'console';
 
 const orderService = new OrderService();
 
@@ -32,6 +33,22 @@ export class OrderController {
     }
   };
 
+  verify = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { orderId, status } = req.params;
+      logger.info(req.params)
+      const updatedOrder = await orderService.verifyOrder(orderId, parseInt(status));
+      if (!updatedOrder) {
+        res.status(404).json({ message: 'Order not found' });
+      } else {
+        res.json(updatedOrder);
+      }
+    } catch (error) {
+      logger.error(`Error verifying order ${req.params.orderId}: ${error}`);
+      res.status(500).json({ error: 'Failed to verifying order' });
+    }
+  };
+
   delete = async (req: Request, res: Response): Promise<void> => {
     try {
       const { orderId } = req.params;
@@ -51,6 +68,21 @@ export class OrderController {
     try {
       const { orderId } = req.params;
       const order = await orderService.getOrderById(orderId);
+      if (!order) {
+        res.status(404).json({ message: 'Order not found' });
+      } else {
+        res.json(order);
+      }
+    } catch (error) {
+      logger.error(`Error retrieving order ${req.params.orderId}: ${error}`);
+      res.status(500).json({ error: 'Failed to retrieve order' });
+    }
+  };
+
+  getUnverifiedOrders = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { restaurantId } = req.params;
+      const order = await orderService.getUnverifiedOrders(restaurantId);
       if (!order) {
         res.status(404).json({ message: 'Order not found' });
       } else {

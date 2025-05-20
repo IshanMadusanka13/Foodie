@@ -15,6 +15,7 @@ import { Camera, Shield } from 'lucide-react';
 import RestaurantDetails from '../../components/profileComponents/RestaurantDetails';
 import MenuItems from '../../components/profileComponents/MenuItems';
 import UnverifiedRestaurants from '../../components/profileComponents/UnverifiedRestaurants';
+import UnverifiedOrders from '../../components/profileComponents/UnverifiedOrders';
 
 const supabaseUrl = 'https://nelqemsnxiomtaosceui.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lbHFlbXNueGlvbXRhb3NjZXVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4NTA1OTEsImV4cCI6MjA2MTQyNjU5MX0.blyjPV4hGnAQpaCyWJD1LAljPt5SWa8o4SxvWEAGAUU';
@@ -36,6 +37,7 @@ const Profile = () => {
     const [isAddingMenuItem, setIsAddingMenuItem] = useState(false);
     const [editingMenuItem, setEditingMenuItem] = useState(null);
     const [unverifiedRestaurants, setUnverifiedRestaurants] = useState([]);
+    const [unverifiedOrders, setUnverifiedOrders] = useState([]);
 
     const navigate = useNavigate();
 
@@ -193,6 +195,54 @@ const Profile = () => {
             navigate('/login')
             console.error('Error getting restaurant details:', error);
             setSuccessMessage('Failed to get restaurant details. Please try again.');
+        }
+    };
+
+    const getUnverifiedOrders = async () => {
+        try {
+            if (!restaurant) return;
+
+            const response = await api.getUnverifiedOrders(restaurant._id);
+            setUnverifiedOrders(response);
+        } catch (error) {
+            console.error('Error getting unverified orders:', error);
+            setSuccessMessage('Failed to get unverified orders. Please try again.');
+        }
+    };
+
+    const handleVerifyOrder = async (orderId) => {
+        try {
+            setLoading(true);
+            const response = await api.verifyOrder(orderId);
+            if (response) {
+                setUnverifiedOrders(unverifiedOrders.filter(order => order.order_id !== orderId));
+                setSuccessMessage('Order verified successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error verifying order:', error);
+            setSuccessMessage('Failed to verify order. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeclineOrder = async (orderId) => {
+        try {
+            setLoading(true);
+            const response = await api.declineOrder(orderId);
+            if (response) {
+                setUnverifiedOrders(unverifiedOrders.filter(order => order.order_id !== orderId));
+                setSuccessMessage('Order declined successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+            }
+        } catch (error) {
+            console.error('Error declining order:', error);
+            setSuccessMessage('Failed to decline order. Please try again.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -424,7 +474,7 @@ const Profile = () => {
             setLoading(false);
         }
     };
-    
+
     const handleDeclineRestaurant = async (restaurantId) => {
         try {
             setLoading(true);
@@ -442,7 +492,7 @@ const Profile = () => {
             setLoading(false);
         }
     };
-    
+
 
     useEffect(() => {
         if (authLoading) return;
@@ -479,6 +529,12 @@ const Profile = () => {
         }, 1000);
         return () => clearTimeout(timer);
     }, [currentUser, navigate, authLoading]);
+
+    useEffect(() => {
+        if (restaurant && currentUser?.role === 'restaurant') {
+            getUnverifiedOrders();
+        }
+    }, [restaurant]);
 
     if (loading || authLoading) {
         return <LoadingProfile />;
@@ -532,9 +588,10 @@ const Profile = () => {
                                     { id: 'profile', label: 'Personal Information', visible: true },
                                     { id: 'restaurant', label: 'Restaurant Details', visible: formData.role === 'restaurant' },
                                     { id: 'menu', label: 'Menu Items', visible: formData.role === 'restaurant' },
+                                    { id: 'pending-orders', label: 'Pending Orders', visible: formData.role === 'restaurant' },
                                     { id: 'orders', label: 'Order History', visible: formData.role === 'customer' },
                                     { id: 'riding', label: 'Riding History', visible: formData.role === 'rider' },
-                                    { id: 'unverified', label: 'Unverified Restaurants', visible: formData.role === 'admin' }
+                                    { id: 'unverified', label: 'Unverified Restaurants', visible: formData.role === 'admin' },
                                 ].filter(tab => tab.visible).map(tab => (
                                     <button
                                         key={tab.id}
@@ -604,6 +661,15 @@ const Profile = () => {
                                     handleUpdateMenuItem={handleUpdateMenuItem}
                                     handleDeleteMenuItem={handleDeleteMenuItem}
                                     handleMenuItemImageUpload={handleMenuItemImageUpload}
+                                />
+                            )}
+
+                            {activeTab === 'pending-orders' && formData.role === 'restaurant' && (
+                                <UnverifiedOrders
+                                    orders={unverifiedOrders}
+                                    handleVerify={handleVerifyOrder}
+                                    handleDecline={handleDeclineOrder}
+                                    viewOrderDetails={(order) => setSelectedOrder(order)}
                                 />
                             )}
 

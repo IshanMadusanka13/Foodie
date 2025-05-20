@@ -55,6 +55,23 @@ export class OrderService implements IOrderService {
         return updated;
     }
 
+    async verifyOrder(orderId: string, status: number): Promise<IOrder | null> {
+        logger.info(`Verifying order ${orderId}`);
+        let updated;
+
+        if (status == 1) {
+            updated = await Order.findOneAndUpdate({ order_id: orderId }, { status: 'accepted' }, { new: true });
+        } else if (status == 0) {
+            updated = await Order.findOneAndUpdate({ order_id: orderId }, { status: 'declined' }, { new: true });
+        }
+
+        if (updated) {
+            logger.info(`Order ${orderId} Verified successfully`);
+        } else {
+            logger.warn(`Order ${orderId} not found for verify`);
+        }
+        return updated || null;
+    }
     async deleteOrder(orderId: string): Promise<boolean> {
         logger.info(`Deleting order ${orderId}`);
         const result = await Order.deleteOne({ order_id: orderId });
@@ -70,6 +87,11 @@ export class OrderService implements IOrderService {
     async getOrderById(orderId: string): Promise<IOrder | null> {
         logger.info(`Fetching order by ID: ${orderId}`);
         return await Order.findOne({ order_id: orderId });
+    }
+
+    async getUnverifiedOrders(restaurantId: string): Promise<IOrder[] | null> {
+        logger.info(`Fetching Unverified Orders for : ${restaurantId}`);
+        return await Order.find({ restaurant: restaurantId, status: 'pending' });
     }
 
     async getOrdersByUserId(userId: string): Promise<IOrder[] | null> {
