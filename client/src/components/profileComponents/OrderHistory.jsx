@@ -27,6 +27,9 @@ const OrderHistory = ({ orders, viewOrderDetails }) => {
                                 Status
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
+                                Track delivery
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
                                 Actions
                             </th>
                         </tr>
@@ -44,7 +47,7 @@ const OrderHistory = ({ orders, viewOrderDetails }) => {
                                     {order.date}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    ${order.total.toFixed(2)}
+                                    Rs. {order.total.toFixed(2)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -52,9 +55,15 @@ const OrderHistory = ({ orders, viewOrderDetails }) => {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    <button className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300" onClick={() => viewOrderDetails(order)}>
+                                    <a href={`/delivery/${order.id}`} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                        Track Delivery
+                                    </a>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    <button className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3" onClick={() => viewOrderDetails(order)}>
                                         View Details
                                     </button>
+                                    
                                 </td>
                             </tr>
                         ))}
