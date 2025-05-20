@@ -24,9 +24,25 @@ export class OrderService implements IOrderService {
         logger.info(`Creating new order for customer ${order.customer}`);
         const newOrder = new Order(order);
         const savedOrder = await newOrder.save();
+
+        const { data: user } = await axios.get('http://localhost:5000/api/users/' + order.customer);
+
+        logger.info(user)
+
+        try {
+            await axios.post('http://localhost:5004/api/notifications/place', {
+                user_id: order.customer,
+                order_id: order.order_id,
+                email: user.email,
+                phone: user.phone_number
+            });
+            logger.info(`Order created with ID: ${order.order_id}`);
+        } catch (error) {
+            logger.error(`Failed to create order: ${error}`);
+        }
+
         return savedOrder;
     }
-
     async updateOrder(orderId: string, order: Partial<IOrder>): Promise<IOrder | null> {
         logger.info(`Updating order ${orderId}`);
         const updated = await Order.findOneAndUpdate({ order_id: orderId }, order, {
@@ -48,7 +64,6 @@ export class OrderService implements IOrderService {
         if (!order) {
             return null;
         }
-logger.info(order)
         if (status == 1) {
             updated = await Order.findOneAndUpdate({ order_id: orderId }, { status: 'accepted' }, { new: true });
 
@@ -69,6 +84,8 @@ logger.info(order)
 
         } else if (status == 0) {
             updated = await Order.findOneAndUpdate({ order_id: orderId }, { status: 'declined' }, { new: true });
+        } else if (status == 2) {
+            updated = await Order.findOneAndUpdate({ order_id: orderId }, { status: 'completed' }, { new: true });
         }
 
         if (updated) {
@@ -77,8 +94,8 @@ logger.info(order)
             logger.warn(`Order ${orderId} not found for verify`);
         }
         return updated || null;
-    }    
-    
+    }
+
     async deleteOrder(orderId: string): Promise<boolean> {
         logger.info(`Deleting order ${orderId}`);
         const result = await Order.deleteOne({ order_id: orderId });

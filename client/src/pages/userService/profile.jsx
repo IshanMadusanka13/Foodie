@@ -213,7 +213,7 @@ const Profile = () => {
     const handleVerifyOrder = async (orderId) => {
         try {
             setLoading(true);
-            const response = await api.verifyOrder(orderId);
+            const response = await api.updateOrderStatus(orderId, 1);
             if (response) {
                 setUnverifiedOrders(unverifiedOrders.filter(order => order.order_id !== orderId));
                 setSuccessMessage('Order verified successfully!');
@@ -231,7 +231,7 @@ const Profile = () => {
     const handleDeclineOrder = async (orderId) => {
         try {
             setLoading(true);
-            const response = await api.declineOrder(orderId);
+            const response = await api.updateOrderStatus(orderId, 0);
             if (response) {
                 setUnverifiedOrders(unverifiedOrders.filter(order => order.order_id !== orderId));
                 setSuccessMessage('Order declined successfully!');

@@ -93,6 +93,7 @@ export const api = {
     getCurrentUser: (email) =>
         fetchApi(`${USER_SERVICE_API_URL}/users/${email}`),
 
+    
     //Restaurant
     createRestaurant: (restaurantData) =>
         fetchApi(RESTUARANT_SERVICE_API_URL + '/restaurant', {
@@ -177,16 +178,10 @@ export const api = {
             method: 'GET'
         }),
 
-    verifyOrder: (orderId) =>
-        fetchApi(ORDER_SERVICE_API_URL + `/order/verify/${orderId}/1`, {
+    updateOrderStatus: (orderId, status) =>
+        fetchApi(ORDER_SERVICE_API_URL + `/order/verify/${orderId}/${status}`, {
             method: 'PUT',
         }),
-
-    declineOrder: (orderId) =>
-        fetchApi(ORDER_SERVICE_API_URL + `/order/verify/${orderId}/0`, {
-            method: 'PUT',
-        }),
-
 
     //Payment
     createPaymentLink: (orderDetails) =>
