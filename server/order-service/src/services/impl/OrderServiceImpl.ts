@@ -27,8 +27,6 @@ export class OrderService implements IOrderService {
 
         const { data: user } = await axios.get('http://localhost:5000/api/users/' + order.customer);
 
-        logger.info(user)
-
         try {
             await axios.post('http://localhost:5004/api/notifications/place', {
                 user_id: order.customer,
@@ -36,9 +34,9 @@ export class OrderService implements IOrderService {
                 email: user.email,
                 phone: user.phone_number
             });
-            logger.info(`Order created with ID: ${order.order_id}`);
+            logger.info("Notification sent to customer");
         } catch (error) {
-            logger.error(`Failed to create order: ${error}`);
+            logger.error(`Failed to send notification to customer: ${error}`);
         }
 
         return savedOrder;

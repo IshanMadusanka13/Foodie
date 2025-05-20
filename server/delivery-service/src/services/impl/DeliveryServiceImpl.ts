@@ -123,6 +123,24 @@ export class DeliveryService implements IDeliveryService {
 
       if (delivery) {
         logger.info(`Delivery status updated to ${status}`);
+
+        if (status === 'delivered') {
+          try {
+
+            const { data: user } = await axios.get('http://localhost:5000/api/users/' + delivery.rider_id);
+
+            await axios.post('http://localhost:5004/api/notifications/complete', {
+              user_id: delivery.rider_id,
+              order_id: delivery.order_id,
+              email: user.email,
+              phone: user.phone_number
+            });
+            logger.info("Notification Sent to Rider");
+          } catch (error) {
+            logger.error(`Failed to send Notification to rider: ${error}`);
+          }
+        }
+
       } else {
         logger.warn('Delivery not found for status update');
       }
