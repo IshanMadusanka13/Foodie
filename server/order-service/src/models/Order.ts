@@ -44,7 +44,7 @@ export interface IOrderCreate {
     }
 }
 
-const OrderSchema: Schema = new Schema<IOrder>({
+const OrderSchema: Schema = new Schema<IOrderCreate>({
     order_id: { type: String, required: true, unique: true },
     customer: { type: String, required: true },
     restaurant: { type: String, required: true },
@@ -59,7 +59,15 @@ const OrderSchema: Schema = new Schema<IOrder>({
     total: { type: Number, required: true },
     status: { type: String, required: true, default: 'pending' },
     paymentMethod: { type: String, required: true },
-    placedAt: { type: Date, default: Date.now }
+    placedAt: { type: Date, default: Date.now },
+    restaurantLocation: {
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true }
+    },
+    customerLocation: {
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true }
+    }
 });
 
 export default mongoose.model<IOrder>('Order', OrderSchema);

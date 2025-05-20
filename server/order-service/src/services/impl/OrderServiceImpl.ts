@@ -24,21 +24,6 @@ export class OrderService implements IOrderService {
         logger.info(`Creating new order for customer ${order.customer}`);
         const newOrder = new Order(order);
         const savedOrder = await newOrder.save();
-
-        try {
-            await axios.post('http://localhost:5005/api/deliveries', {
-                order_id: savedOrder.order_id,
-                customer: savedOrder.customer,
-                restaurant: savedOrder.restaurant,
-                payment_method: savedOrder.paymentMethod,
-                restaurant_location: order.restaurantLocation,
-                customer_location: order.customerLocation,
-                total: savedOrder.total
-            });
-            logger.info(`Order created with ID: ${savedOrder.order_id}`);
-        } catch (error) {
-            logger.error(`Failed to create order: ${error}`);
-        }
         return savedOrder;
     }
 
@@ -59,8 +44,29 @@ export class OrderService implements IOrderService {
         logger.info(`Verifying order ${orderId}`);
         let updated;
 
+        const order = await this.getOrderById(orderId);
+        if (!order) {
+            return null;
+        }
+logger.info(order)
         if (status == 1) {
             updated = await Order.findOneAndUpdate({ order_id: orderId }, { status: 'accepted' }, { new: true });
+
+            try {
+                await axios.post('http://localhost:5005/api/deliveries', {
+                    order_id: order.order_id,
+                    customer: order.customer,
+                    restaurant: order.restaurant,
+                    payment_method: order.paymentMethod,
+                    restaurant_location: order.restaurantLocation,
+                    customer_location: order.customerLocation,
+                    total: order.total
+                });
+                logger.info(`Order created with ID: ${order.order_id}`);
+            } catch (error) {
+                logger.error(`Failed to create order: ${error}`);
+            }
+
         } else if (status == 0) {
             updated = await Order.findOneAndUpdate({ order_id: orderId }, { status: 'declined' }, { new: true });
         }
@@ -71,7 +77,8 @@ export class OrderService implements IOrderService {
             logger.warn(`Order ${orderId} not found for verify`);
         }
         return updated || null;
-    }
+    }    
+    
     async deleteOrder(orderId: string): Promise<boolean> {
         logger.info(`Deleting order ${orderId}`);
         const result = await Order.deleteOne({ order_id: orderId });
@@ -84,7 +91,7 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async getOrderById(orderId: string): Promise<IOrder | null> {
+    async getOrderById(orderId: string): Promise<IOrderCreate | null> {
         logger.info(`Fetching order by ID: ${orderId}`);
         return await Order.findOne({ order_id: orderId });
     }
