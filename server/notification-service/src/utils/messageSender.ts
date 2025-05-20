@@ -1,16 +1,14 @@
 import logger from '../config/logger';
 import nodemailer from 'nodemailer';
-import { Vonage } from '@vonage/server-sdk';
-import { Auth } from '@vonage/auth';
+import twilio from 'twilio';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const vonage = new Vonage(
-    new Auth({
-        apiKey: process.env.VONAGE_API_KEY!,
-        apiSecret: process.env.VONAGE_API_SECRET!,
-    })
+// Initialize Twilio client
+const twilioClient = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
 );
 
 export async function sendEmail(to: string, subject: string, content: string): Promise<boolean> {
@@ -42,15 +40,17 @@ export async function sendEmail(to: string, subject: string, content: string): P
 }
 
 export async function sendSMS(to: string, content: string): Promise<boolean> {
-    logger.info(`MOCK SMS SENT: To: ${to}, Content: ${content}`);
+    logger.info(`Sending SMS To: ${to}, Content: ${content}`);
 
     try {
-        await vonage.sms.send({
-            to,
-            from: process.env.VONAGE_VIRTUAL_NUMBER!,
-            text: content,
+        // Send SMS using Twilio
+        const message = await twilioClient.messages.create({
+            body: content,
+            from: process.env.TWILIO_PHONE_NUMBER!,
+            to: to
         });
-        logger.info('SMS sent successfully');
+        
+        logger.info(`SMS sent successfully with SID: ${message.sid}`);
     } catch (error: any) {
         logger.error('SMS sending failed:', error.message);
         throw new Error('SMS delivery failed');
