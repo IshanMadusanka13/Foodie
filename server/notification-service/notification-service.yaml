@@ -7,6 +7,6 @@ spec:
     app: notification-service
   ports:
   - port: 80
-    targetPort: 5000
+    targetPort: 5004
     nodePort: 30000
   type: ClusterIP
