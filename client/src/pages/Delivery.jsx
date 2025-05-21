@@ -64,15 +64,16 @@ const Delivery = () => {
   const { currentUser } = useAuth();
   const [nearbyDeliveries, setNearbyDeliveries] = useState([]);
   const [activeDelivery, setActiveDelivery] = useState(null);
-  const [userLocation, setUserLocation] = useState({ latitude: 6.699677, longitude: 79.910938 }); //home
-  //const [userLocation, setUserLocation] = useState({ latitude: 6.915185, longitude: 79.973575 }); //sliit
+  //const [userLocation, setUserLocation] = useState({ latitude: 6.699677, longitude: 79.910938 }); //home
+  const [userLocation, setUserLocation] = useState({ latitude: 6.915185, longitude: 79.973575 }); //sliit
   const [mapCenter, setMapCenter] = useState([6.699677, 79.910938]); // Default to Sri Lanka center
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [routeToDestination, setRouteToDestination] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [estimatedDistance, setEstimatedDistance] = useState(null);
-  const CurrentLocation = { latitude: 6.699677, longitude: 79.910938 };
+  //const CurrentLocation = { latitude: 6.699677, longitude: 79.910938 };
+  const CurrentLocation = { latitude: 6.915545, longitude: 79.974161 };
 
   console.log("Current User:", currentUser);
 

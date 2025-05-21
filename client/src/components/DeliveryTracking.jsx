@@ -90,7 +90,8 @@ const DeliveryTracking = () => {
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [estimatedDistance, setEstimatedDistance] = useState(null);
   const [deliveryId, setDeliveryId] = useState(null);
-  const currentLocation = { latitude: 6.699677, longitude: 79.910938 };
+  //const currentLocation = { latitude: 6.699677, longitude: 79.910938 };
+  const currentLocation = { latitude: 6.915545, longitude: 79.974161 };
 
   // Fetch delivery and set up socket
   useEffect(() => {
