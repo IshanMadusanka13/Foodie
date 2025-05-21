@@ -118,8 +118,36 @@ export class OrderService implements IOrderService {
 
     async getOrdersByUserId(userId: string): Promise<IOrder[] | null> {
         logger.info(`Fetching orders for user ID: ${userId}`);
-        return await Order.find({ customer: userId });
+    
+        try {
+            const orders = await Order.find({ customer: userId });
+            if (!orders || orders.length === 0) {
+                logger.warn(`Orders with User ID ${userId} not found`);
+                return null;
+            }
+            const ordersWithRestaurantNames = await Promise.all(
+                orders.map(async (order) => {
+                    try {
+                        const { data: restaurant } = await axios.get(`http://localhost:5001/api/restaurant/${order.restaurant}`);
+                        logger.info(`Added restaurant name for order ${order.order_id}`);
+                        return {
+                            ...order.toObject(),
+                            restaurantName: restaurant.name
+                        };
+                    } catch (error) {
+                        logger.warn(`Failed to fetch restaurant details for order ${order.order_id}: ${error}`);
+                        return order.toObject();
+                    }
+                })
+            );
+    
+            return ordersWithRestaurantNames;
+        } catch (error) {
+            logger.error(`Failed to fetch orders: ${error}`);
+            return null;
+        }
     }
+    
 
     async getAllOrders(): Promise<IOrder[]> {
         logger.info(`Fetching all orders`);

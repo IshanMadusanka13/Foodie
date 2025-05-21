@@ -98,6 +98,7 @@ export class OrderController {
     try {
       const { userId } = req.params;
       const orders = await orderService.getOrdersByUserId(userId);
+      logger.info(orders)
       res.json(orders);
     } catch (error) {
       logger.error(`Error retrieving orders for user ${req.params.userId}: ${error}`);

@@ -1,6 +1,7 @@
 import React from 'react';
 
 const OrderHistory = ({ orders, viewOrderDetails }) => {
+    console.log(orders)
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -41,7 +42,7 @@ const OrderHistory = ({ orders, viewOrderDetails }) => {
                                     {order.id}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {order.restaurant}
+                                    {order.restaurantName}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                     {order.date}

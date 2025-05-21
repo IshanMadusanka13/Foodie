@@ -70,4 +70,4 @@ const OrderSchema: Schema = new Schema<IOrderCreate>({
     }
 });
 
-export default mongoose.model<IOrder>('Order', OrderSchema);
+export default mongoose.model<IOrderCreate>('Order', OrderSchema);

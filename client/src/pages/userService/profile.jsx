@@ -58,7 +58,8 @@ const Profile = () => {
                 items: order.items,
                 orderAmount: order.orderAmount,
                 deliveryFee: order.deliveryFee,
-                paymentMethod: order.paymentMethod
+                paymentMethod: order.paymentMethod,
+                restaurantName: order.restaurantName
             }));
 
             setFormData(prev => ({

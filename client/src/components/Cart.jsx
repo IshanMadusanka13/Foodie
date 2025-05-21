@@ -71,7 +71,7 @@ const Cart = ({ isOpen, onClose }) => {
               <div className="flex justify-between">
                 <div>
                   <h4 className="text-gray-800 dark:text-gray-200 font-medium">{item.menuItemName}</h4>
-                  <p className="text-gray-600 dark:text-gray-400">${item.menuItemPrice.toFixed(2)}</p>
+                  <p className="text-gray-600 dark:text-gray-400">LKR {item.menuItemPrice.toFixed(2)}</p>
                 </div>
                 <div className="flex items-center">
                   <button 
@@ -97,7 +97,7 @@ const Cart = ({ isOpen, onClose }) => {
                   Remove
                 </button>
                 <span className="font-medium text-gray-800 dark:text-gray-200">
-                  ${(item.menuItemPrice * item.qty).toFixed(2)}
+                  LKR {(item.menuItemPrice * item.qty).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -107,7 +107,7 @@ const Cart = ({ isOpen, onClose }) => {
         <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
           <div className="flex justify-between font-medium text-lg mb-4">
             <span>Total:</span>
-            <span>${getCartTotal().toFixed(2)}</span>
+            <span>LKR {getCartTotal().toFixed(2)}</span>
           </div>
           
           <div className="flex space-x-4">

@@ -205,7 +205,7 @@ const RestaurantDetail = () => {
                 <div className="p-4 flex-grow">
                   <div className="flex justify-between items-start">
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">{item.name}</h3>
-                    <span className="text-green-600 dark:text-green-400 font-medium">${item.price.toFixed(2)}</span>
+                    <span className="text-green-600 dark:text-green-400 font-medium">LKR {item.price.toFixed(2)}</span>
                   </div>
                   {item.category && (
                     <span className="inline-block mt-1 px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300">
