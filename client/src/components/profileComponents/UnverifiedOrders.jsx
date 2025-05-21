@@ -56,7 +56,7 @@ const UnverifiedOrders = ({ orders, handleVerify, handleDecline, viewOrderDetail
                   {new Date(order.placedAt).toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                  ${order.total.toFixed(2)}
+                  LKR {order.total.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
