@@ -61,6 +61,9 @@ export class NotificationController {
     try {
       const { email, phone } = req.body;
 
+      console.log(email, phone);
+      
+
       if (!email || !phone) {
         res.status(400).json({ message: 'Missing email or phone' });
         return;
@@ -72,12 +75,14 @@ export class NotificationController {
         "Test Notification",
         "This is a test notification from Foodie Delivery!"
       );
-
+      console.log(`Email sent to ${email}`);
       // Test SMS
       await sendSMS(
         phone,
         "This is a test SMS from Foodie Delivery!"
       );
+
+      console.log(`SMS sent to ${phone}`);
 
       res.status(200).json({
         success: true,
